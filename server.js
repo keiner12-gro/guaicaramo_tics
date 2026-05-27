@@ -3,9 +3,28 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const path = require('path');
+const multer = require('multer');
+const XLSX = require('xlsx');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Configurar multer para archivos Excel
+const upload = multer({
+    storage: multer.memoryStorage(),
+    fileFilter: (req, file, cb) => {
+        const allowedMimes = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-excel'
+        ];
+        
+        if (allowedMimes.includes(file.mimetype) || file.originalname.endsWith('.xlsx') || file.originalname.endsWith('.xls')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Solo se permiten archivos Excel (.xls, .xlsx)'));
+        }
+    }
+});
 
 // Middleware
 app.use(cors());
@@ -130,7 +149,7 @@ app.post('/api/equipos', async (req, res) => {
         } = req.body;
 
         const query = `INSERT INTO equipos 
-            (marca, modelo, estado, nombre_equipo, fecha_compra, placa, usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk, fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento) 
+            (marca, modelo, estado, nombre_equipo, fecha_compra, placa, usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk, fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
         const [result] = await pool.query(query, [
@@ -146,7 +165,94 @@ app.post('/api/equipos', async (req, res) => {
     }
 });
 
-// Bulk insert for Excel import
+// Ruta para carga de Excel con multer
+app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No se subió archivo' });
+        }
+
+        // Leer el archivo Excel desde memoria
+        const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        if (jsonData.length === 0) {
+            return res.status(400).json({ error: 'El archivo está vacío' });
+        }
+
+        // Mapear función (igual a la del frontend)
+        const mapearEquipo = (fila) => {
+            const texto = (valor) => String(valor ?? "").trim();
+            const normalizar = (valor) => texto(valor)
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, "");
+
+            const valorFila = (nombres) => {
+                const buscados = nombres.map(normalizar);
+                const clave = Object.keys(fila).find((key) => buscados.includes(normalizar(key)));
+                return clave ? texto(fila[clave]) : "";
+            };
+
+            const fechaExcel = (valor) => {
+                const limpio = texto(valor);
+                if (!limpio) return "";
+                if (/^\d{4}-\d{2}-\d{2}$/.test(limpio)) return limpio;
+
+                const serial = Number(limpio);
+                if (!Number.isFinite(serial) || serial < 1 || serial > 60000) return limpio;
+
+                const fecha = new Date(Date.UTC(1899, 11, 30) + serial * 86400000);
+                return fecha.toISOString().slice(0, 10);
+            };
+
+            return {
+                marca: valorFila(["Marca"]),
+                modelo: valorFila(["Modelo", "Modelo CPU", "Tipo", "Tipo de PC", "Tipo de equipo"]),
+                estado: valorFila(["Estado"]),
+                nombre_equipo: valorFila(["Nombre del equipo", "Nombre equipo", "Nombre nuevo de equipo", "Equipo", "Nombre PC", "Host", "Hostname"]),
+                fecha_compra: fechaExcel(valorFila(["Fecha de compra", "Fecha compra", "Compra"])),
+                placa: valorFila(["Placa", "Placa CPU", "Placa TICS", "Placa TICS/Activo"]),
+                usuario: valorFila(["Responsable", "Nombre responsable", "Funcionario", "Nombre", "", "__EMPTY", "__EMPTY_1"]) || valorFila(["Usuario"]),
+                correo: valorFila(["Correo", "Email", "Correo electronico", "Correo electrónico"]),
+                sistema_operativo: valorFila(["Sistema operativo", "SO", "S.O."]),
+                numero_serie: valorFila(["Serial", "Serial CPU", "Serie", "Numero de serie", "Numero serie", "Número de serie", "S/N"]),
+                ubicacion: valorFila(["Ubicacion", "Ubicación", "Sede"]),
+                anydesk: valorFila(["AnyDesk", "Anydesk", "Anidex", "Anidesk"]),
+                fecha_ultimo_mantenimiento: valorFila(["fecha_ultimo_mantenimiento", "Ultimo mantenimiento", "Último mantenimiento", "Manto anterior", "Fecha mantenimiento"]),
+                fecha_proximo_mantenimiento: valorFila(["fecha_proximo_mantenimiento", "Proximo mantenimiento", "Próximo mantenimiento", "Proxima revision", "Próxima revisión"])
+            };
+        };
+
+        const equiposMapeados = jsonData.map(mapearEquipo);
+
+        // Insertar en la base de datos
+        const query = `INSERT INTO equipos 
+            (marca, modelo, estado, nombre_equipo, fecha_compra, placa, usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk, fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento)
+            VALUES ?`;
+
+        const values = equiposMapeados.map(e => [
+            e.marca, e.modelo, e.estado, e.nombre_equipo, normalizarFecha(e.fecha_compra),
+            e.placa, e.usuario, e.correo, e.sistema_operativo, e.numero_serie, e.ubicacion, e.anydesk,
+            normalizarFecha(e.fecha_ultimo_mantenimiento), normalizarFecha(e.fecha_proximo_mantenimiento)
+        ]);
+
+        await pool.query(query, [values]);
+
+        res.status(201).json({ 
+            message: `${equiposMapeados.length} equipos importados con éxito`,
+            equipos: equiposMapeados 
+        });
+    } catch (error) {
+        console.error('Error procesando Excel:', error);
+        res.status(400).json({ error: 'No se pudo procesar el archivo Excel. Verifica el formato.' });
+    }
+});
+
+// Bulk insert for Excel import (JSON)
 app.post('/api/equipos/bulk', async (req, res) => {
     try {
         const { equipos } = req.body;
@@ -155,7 +261,7 @@ app.post('/api/equipos/bulk', async (req, res) => {
         }
 
         const query = `INSERT INTO equipos 
-            (marca, modelo, estado, nombre_equipo, fecha_compra, placa, usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk, fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento) 
+            (marca, modelo, estado, nombre_equipo, fecha_compra, placa, usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk, fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento)
             VALUES ?`;
 
         const values = equipos.map(e => [
