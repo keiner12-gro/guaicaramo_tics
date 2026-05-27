@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../css/styles.css">
+    <title>Registrar Equipo</title>
+</head>
+<body>
+    <div class="contenedor registro-card w-full bg-neutral-primary-soft p-6 border border-default rounded-base shadow-xs">
+        <div class="registro-header">
+            <a href="../../index.html" class="boton-regresar">Regresar</a>
+            <h5 class="text-xl font-semibold text-heading mb-6">Registrar Equipo</h5>
+        </div>
+
+        <div class="grid grid-cols-1 gap-8 mb-8">
+            <!-- Opción Excel -->
+            <div class="p-6 border-2 border-dashed border-blue-400 rounded-xl bg-blue-50/50 hover:bg-blue-50 transition-colors">
+                <div class="flex items-center mb-4">
+                    <div class="p-3 bg-blue-500 rounded-lg text-white mr-4">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-blue-800">Carga Masiva (Excel)</h3>
+                        <p class="text-sm text-blue-600">Importa múltiples equipos a la vez seleccionando un archivo .xlsx o .xls</p>
+                    </div>
+                </div>
+                <input type="file" id="excel-import" accept=".xlsx, .xls" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none p-2">
+            </div>
+        </div>
+
+        <form action="#" id="form-registro-equipo" class="registro-form">
+            <div>
+                <label for="marca">Marca</label>
+                <input type="text" id="marca" required placeholder="Ej: HP, Dell, Lenovo">
+            </div>
+            <div>
+                <label for="modelo">Modelo</label>
+                <input type="text" id="modelo" required placeholder="Ej: ProBook 450">
+            </div>
+            <div>
+                <label for="estado">Estado</label>
+                <input type="text" id="estado" placeholder="Ej: Activo, usado, nuevo">
+            </div>
+            <div>
+                <label for="nombre_equipo">Nombre del equipo</label>
+                <input type="text" id="nombre_equipo" placeholder="Ej: PC-CONTABILIDAD-01">
+            </div>
+            <div>
+                <label for="fecha_compra">Fecha de compra</label>
+                <input type="date" id="fecha_compra">
+            </div>
+            <div>
+                <label for="placa">Placa</label>
+                <input type="text" id="placa">
+            </div>
+            <div>
+                <label for="usuario">Usuario</label>
+                <input type="text" id="usuario">
+            </div>
+            <div>
+                <label for="correo">Correo</label>
+                <input type="email" id="correo">
+            </div>
+            <div>
+                <label for="sistema_operativo">Sistema operativo</label>
+                <input type="text" id="sistema_operativo" placeholder="Ej: Windows 11">
+            </div>
+            <div>
+                <label for="numero_serie">Serial</label>
+                <input type="text" id="numero_serie" required>
+            </div>
+            <div>
+                <label for="ubicacion">Ubicacion</label>
+                <input type="text" id="ubicacion">
+            </div>
+            <div>
+                <label for="anydesk">AnyDesk</label>
+                <input type="text" id="anydesk" placeholder="ID de AnyDesk">
+            </div>
+            <div>
+                <label for="fecha_ultimo_mantenimiento">Ultimo mantenimiento</label>
+                <input type="date" id="fecha_ultimo_mantenimiento">
+            </div>
+            <div>
+                <label for="fecha_proximo_mantenimiento">Proximo mantenimiento</label>
+                <input type="date" id="fecha_proximo_mantenimiento">
+            </div>
+
+            <button type="submit" class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-base text-sm px-4 py-2.5 text-center">Registrar Equipo</button>
+        </form>
+
+        <div id="import-log" class="hidden mt-8">
+            <h4 class="text-md font-bold text-gray-700 mb-4 border-b pb-2">Última Importación</h4>
+            <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2">Marca</th>
+                            <th class="px-4 py-2">Modelo</th>
+                            <th class="px-4 py-2">Serial</th>
+                            <th class="px-4 py-2">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/scripts.js" defer></script>
+</body>
+</html>

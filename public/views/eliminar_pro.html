@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../css/styles.css">
+    <title>Eliminar elementos</title>
+</head>
+<body>
+    <a href="../../index.html" class="boton-regresar">Regresar</a>
+
+    <main class="consulta-card">
+        <section class="consulta-header">
+            <h1>Eliminar elementos</h1>
+            <form id="form" class="consulta-form">
+                <div class="contenedor-input">
+                    <label>
+                        Buscar elemento <span>:</span>
+                    </label>
+                    <input type="text" id="dato1" placeholder="Descripcion, marca, serial, placa o modelo">
+                </div>
+                <button id="consulta" type="submit">Consultar</button>
+                <div class="txt" id="exito"></div>
+                <div class="txt" id="error"></div>
+            </form>
+        </section>
+
+        <div class="tabla-card">
+            <table id="tabla-elementos-eliminar" class="tabla-consulta tabla-eliminar">
+                <thead>
+                    <tr>
+                        <th scope="col">Cantidad</th>
+                        <th scope="col">Modelo</th>
+                        <th scope="col">Marca</th>
+                        <th scope="col">Serial</th>
+                        <th scope="col">Placa</th>
+                        <th scope="col">Descripcion</th>
+                        <th scope="col">Fecha de ingreso</th>
+                        <th scope="col">Fecha de baja</th>
+                        <th scope="col">Accion</th>
+                    </tr>
+                </thead>
+                <tbody id="elementos-body">
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/scripts.js" defer></script>
+</body>
+</html>

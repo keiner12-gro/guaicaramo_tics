@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../css/styles.css">
+    <title>Consultar Equipos</title>
+</head>
+<body>
+    <div class="contenedor-wide consulta-card w-full bg-neutral-primary-soft p-8 border border-default rounded-base shadow-xl">
+        <div class="consulta-header border-b border-gray-100 pb-6 mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Inventario de Equipos</h1>
+                    <p class="text-blue-600 font-medium">Gestión y control de activos tecnológicos</p>
+                </div>
+                <a href="../../index.html" class="boton-regresar-modern">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Regresar al Menú
+                </a>
+            </div>
+            
+            <form id="form-busqueda-equipo" class="mt-8">
+                <div class="relative max-w-2xl">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="busqueda-equipo" class="busqueda-input-modern" placeholder="Buscar por marca, modelo, estado, nombre, serial, usuario, correo, placa, ubicacion o AnyDesk...">
+                    <button type="submit" class="busqueda-boton-modern">Buscar Ahora</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="flex justify-between items-center mb-4">
+            <div id="contador-equipos" class="text-sm font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                Cargando equipos...
+            </div>
+            <div class="acciones-exportar-modern">
+                <button id="exportar-equipos-excel" class="btn-excel">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"></path></svg>
+                    Exportar reporte Excel
+                </button>
+            </div>
+        </div>
+
+        <div class="tabla-contenedor-modern">
+            <table class="tabla-modern">
+                <thead>
+                    <tr>
+                        <th class="sticky-col">Marca</th>
+                        <th>Modelo</th>
+                        <th>Estado</th>
+                        <th>Nombre equipo</th>
+                        <th>F. Compra</th>
+                        <th>Placa TICS</th>
+                        <th>S.O.</th>
+                        <th>Ubicación</th>
+                        <th>Responsable</th>
+                        <th>Serial</th>
+                        <th>AnyDesk</th>
+                        <th>Correo Electrónico</th>
+                        <th>Manto. Anterior</th>
+                        <th>Próximo Manto.</th>
+                    </tr>
+                </thead>
+                <tbody id="equipos-body">
+                    <!-- Datos cargados dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/scripts.js" defer></script>
+</body>
+</html>

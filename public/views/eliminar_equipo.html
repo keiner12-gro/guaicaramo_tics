@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../css/styles.css">
+    <title>Eliminar Equipos</title>
+</head>
+<body>
+    <div class="consulta-card w-full max-w-7xl bg-white p-8 border border-gray-200 rounded-2xl shadow-xl mx-auto my-10">
+        <div class="consulta-header">
+            <div class="flex justify-between items-center">
+                <a href="../../index.html" class="boton-regresar">Regresar</a>
+                <h1 class="text-3xl font-extrabold text-gray-800">Eliminar Equipos</h1>
+                <button id="eliminar-todos-equipos" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-red-200 transform hover:-translate-y-1">
+                    Eliminar Todo
+                </button>
+            </div>
+        </div>
+
+        <div class="tabla-contenedor-modern mt-8">
+            <table class="w-full border-collapse bg-white overflow-hidden rounded-xl" id="tabla-equipos-eliminar">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <th class="px-8 py-4 text-left text-sm font-bold uppercase tracking-wider">Marca</th>
+                        <th class="px-8 py-4 text-left text-sm font-bold uppercase tracking-wider">Modelo</th>
+                        <th class="px-8 py-4 text-left text-sm font-bold uppercase tracking-wider">Nombre equipo</th>
+                        <th class="px-8 py-4 text-left text-sm font-bold uppercase tracking-wider">Serial</th>
+                        <th class="px-8 py-4 text-left text-sm font-bold uppercase tracking-wider">Usuario</th>
+                        <th class="px-8 py-4 text-left text-sm font-bold uppercase tracking-wider">Placa</th>
+                        <th class="px-8 py-4 text-center text-sm font-bold uppercase tracking-wider">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="equipos-eliminar-body" class="divide-y divide-gray-200">
+                    <!-- Datos cargados dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/scripts.js" defer></script>
+</body>
+</html>

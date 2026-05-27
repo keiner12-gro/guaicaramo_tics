@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../css/styles.css">
+    <title>Registrar elemento</title>
+</head>
+<body>
+    <div class="contenedor registro-card w-full bg-neutral-primary-soft p-6 border border-default rounded-base shadow-xs">
+        <div class="registro-header">
+            <a href="../../index.html" class="boton-regresar">Regresar</a>
+            <h5 class="text-xl font-semibold text-heading mb-6">Registrar elemento</h5>
+        </div>
+
+        <form action="#" id="form-registro" class="registro-form">
+            <div class="mb-4">
+                <label for="texto" class="block mb-2.5 text-sm font-medium text-heading">Cantidad</label>
+                <input type="text" id="texto" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"  required />
+            </div>
+            <div>
+                <label for="modelo" class="block mb-2.5 text-sm font-medium text-heading">Modelo</label>
+                <input type="text" id="modelo" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"  required />
+            </div>
+            <div>
+                <label for="texto3" class="block mb-2.5 text-sm font-medium text-heading">Marca</label>
+                <input type="text" id="texto3" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"  required />
+            </div>
+            <div>
+                <label for="texto4" class="block mb-2.5 text-sm font-medium text-heading">Serial</label>
+                <input type="text" id="texto4" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"  required />
+            </div>
+            <div>
+                <label for="texto5" class="block mb-2.5 text-sm font-medium text-heading">Placa</label>
+                <input type="text" id="texto5" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"  required />
+            </div>
+            <div>
+                <label for="texto2" class="block mb-2.5 text-sm font-medium text-heading">Descripcion</label>
+                <input type="text" id="texto2" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" />
+            </div>
+            <div>
+                <label for="fecha_ingreso" class="block mb-2.5 text-sm font-medium text-heading">Fecha de ingreso</label>
+                <input type="date" id="fecha_ingreso" onkeydown="return false" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs">
+            </div>
+            <div>
+                <label for="fecha_de_baja" class="block mb-2.5 text-sm font-medium text-heading">Fecha de baja</label>
+                <input type="date" id="fecha_de_baja" onkeydown="return false" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs">
+            </div>
+            <button type="submit" class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-base text-sm px-4 py-2.5 text-center leading-5">Registrar</button>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/scripts.js" defer></script>
+</body>
+</html>
