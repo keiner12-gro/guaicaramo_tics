@@ -363,40 +363,32 @@ const inicializarExcelImport = () => {
     const inputExcel = document.getElementById("excel-import");
     if (!inputExcel) return;
 
-    inputExcel.addEventListener("change", (e) => {
+    inputExcel.addEventListener("change", async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            try {
-                const data = new Uint8Array(event.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        const formData = new FormData();
+        formData.append('file', file);
 
-                if (jsonData.length === 0) throw new Error("El archivo está vacío");
+        try {
+            const respuesta = await fetch('/api/equipos/upload', {
+                method: "POST",
+                body: formData
+            });
 
-                const equiposMapeados = jsonData.map(mapearEquipo);
+            const resultado = await respuesta.json();
 
-                const respuesta = await fetch(`${API_EQUIPOS_URL}/bulk`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ equipos: equiposMapeados })
-                });
-
-                if (!respuesta.ok) throw new Error("Error en el servidor");
-
-                mostrarLogImportacion(equiposMapeados);
-                await alerta("success", "Importación Exitosa", `${equiposMapeados.length} equipos guardados automáticamente.`);
-                inputExcel.value = "";
-            } catch (error) {
-                console.error("Error Excel:", error);
-                await alerta("error", "Error", "No se pudo procesar el archivo Excel. Verifica el formato.");
+            if (!respuesta.ok) {
+                throw new Error(resultado.error || 'Error al subir archivo');
             }
-        };
-        reader.readAsArrayBuffer(file);
+
+            mostrarLogImportacion(resultado.equipos);
+            await alerta("success", "Importación Exitosa", `${resultado.equipos.length} equipos guardados automáticamente.`);
+            inputExcel.value = "";
+        } catch (error) {
+            console.error("Error Excel:", error);
+            await alerta("error", "Error", error.message || "No se pudo procesar el archivo Excel. Verifica el formato.");
+        }
     });
 };
 
