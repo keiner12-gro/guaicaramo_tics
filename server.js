@@ -323,13 +323,22 @@ app.post(
                 { type: 'array' }
             );
 
-            const sheetName = workbook.SheetNames[0];
+            // Leer TODAS las hojas del libro para no perder datos
+            let jsonData = [];
+            console.log(`Hojas detectadas: ${workbook.SheetNames.length} (${workbook.SheetNames.join(', ')})`);
+            
+            workbook.SheetNames.forEach(name => {
+                const sheet = workbook.Sheets[name];
+                const data = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+                console.log(`- Hoja "${name}": ${data.length} filas encontradas`);
+                jsonData = jsonData.concat(data);
+            });
 
-            const worksheet = workbook.Sheets[sheetName];
+            console.log(`Total de filas a procesar: ${jsonData.length}`);
 
-            const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-            console.log(`Filas encontradas: ${jsonData.length}`);
+            if (jsonData.length === 0) {
+                return res.status(400).json({ error: 'El archivo está vacío o no tiene el formato correcto' });
+            }
 
             const mapearEquipo = (fila) => {
 
@@ -356,69 +365,98 @@ app.post(
 
                 return {
 
-                    marca: valorFila(['Marca']),
+                    marca: valorFila(['Marca', 'Fabricante']),
 
                     modelo: valorFila([
                         'Modelo',
                         'Modelo CPU',
                         'Tipo',
-                        'Tipo de PC'
+                        'Tipo de PC',
+                        'Tipo de equipo',
+                        'Categoria',
+                        'Categoría'
                     ]),
 
-                    estado: valorFila(['Estado']),
+                    estado: valorFila(['Estado', 'Condicion', 'Condición']),
 
                     nombre_equipo: valorFila([
                         'Nombre nuevo de equipo',
                         'Nombre equipo',
-                        'Equipo'
+                        'Equipo',
+                        'Hostname',
+                        'Nombre PC',
+                        'Nombre del equipo'
                     ]),
 
                     fecha_compra: valorFila([
-                        'Fecha compra'
+                        'Fecha compra',
+                        'Fecha de compra',
+                        'Compra'
                     ]),
 
                     placa: valorFila([
                         'Placa CPU',
-                        'Placa'
+                        'Placa',
+                        'Placa TICS',
+                        'Activo'
                     ]),
 
                     usuario: valorFila([
                         'Responsable',
                         'Usuario',
+                        'Funcionario',
+                        'Nombre',
+                        'Empleado',
                         '__EMPTY'
                     ]),
 
                     correo: valorFila([
                         'Correo',
-                        'Email'
+                        'Email',
+                        'Correo electrónico',
+                        'Correo electronico'
                     ]),
 
                     sistema_operativo: valorFila([
-                        'Sistema operativo'
+                        'Sistema operativo',
+                        'S.O.',
+                        'SO',
+                        'Windows'
                     ]),
 
                     numero_serie: valorFila([
                         'Serial CPU',
-                        'Serial'
+                        'Serial',
+                        'Serie',
+                        'S/N',
+                        'Número de serie',
+                        'Numero de serie'
                     ]),
 
                     ubicacion: valorFila([
                         'Ubicacion',
-                        'Ubicación'
+                        'Ubicación',
+                        'Sede',
+                        'Oficina'
                     ]),
 
                     anydesk: valorFila([
-                        'AnyDesk'
+                        'AnyDesk',
+                        'Any desk'
                     ]),
 
                     fecha_ultimo_mantenimiento: valorFila([
                         'Fecha mantenimiento',
-                        'Ultimo mantenimiento'
+                        'Ultimo mantenimiento',
+                        'Último mantenimiento',
+                        'Manto anterior'
                     ]),
 
                     fecha_proximo_mantenimiento: valorFila([
                         'Proxima revision',
-                        'Próxima revisión'
+                        'Próxima revisión',
+                        'Proximo mantenimiento',
+                        'Próximo mantenimiento'
                     ])
                 };
             };
