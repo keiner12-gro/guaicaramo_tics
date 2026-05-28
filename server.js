@@ -166,21 +166,26 @@ app.post('/api/equipos', async (req, res) => {
     }
 });
 
-// Ruta para carga de Excel con multer - MEJORADA CON LOGS DETALLADOS
+// Ruta para carga de Excel con multer - CON LOGS COMPLETOS DEL ERROR
 app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
     try {
-        console.log('=== INICIANDO CARGA DE ARCHIVO ===');
+        console.log('\n========================================');
+        console.log('=== INICIANDO CARGA DE ARCHIVO EXCEL ===');
+        console.log('========================================\n');
         
         if (!req.file) {
-            console.error('No file uploaded');
+            console.error('❌ No file uploaded');
             return res.status(400).json({ error: 'No se subió archivo' });
         }
 
-        console.log(`Archivo recibido: ${req.file.originalname}, tamaño: ${req.file.size} bytes`);
+        console.log(`✅ Archivo recibido:`);
+        console.log(`   Nombre: ${req.file.originalname}`);
+        console.log(`   Tamaño: ${req.file.size} bytes`);
+        console.log(`   MIME Type: ${req.file.mimetype}\n`);
 
         // Validar que el buffer existe y tiene contenido
         if (!req.file.buffer || req.file.buffer.length === 0) {
-            console.error('Buffer is empty');
+            console.error('❌ Buffer is empty');
             return res.status(400).json({ error: 'El archivo está vacío' });
         }
 
@@ -188,41 +193,44 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
         let workbook;
         try {
             workbook = XLSX.read(req.file.buffer, { type: 'array' });
-            console.log(`Workbook leído. Hojas: ${workbook.SheetNames.join(', ')}`);
+            console.log(`✅ Workbook leído exitosamente`);
+            console.log(`   Hojas encontradas: ${workbook.SheetNames.join(', ')}\n`);
         } catch (readError) {
-            console.error('Error reading Excel:', readError.message);
+            console.error('❌ Error reading Excel:', readError.message);
             return res.status(400).json({ error: 'Error al leer el archivo Excel. Verifica que sea un archivo válido.' });
         }
 
         if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
-            console.error('No sheets found in workbook');
+            console.error('❌ No sheets found in workbook');
             return res.status(400).json({ error: 'El archivo Excel no contiene hojas' });
         }
 
         const sheetName = workbook.SheetNames[0];
-        console.log(`Procesando hoja: ${sheetName}`);
+        console.log(`📄 Procesando hoja: "${sheetName}"`);
         
         const worksheet = workbook.Sheets[sheetName];
         if (!worksheet) {
-            console.error('Worksheet is null or undefined');
+            console.error('❌ Worksheet is null or undefined');
             return res.status(400).json({ error: 'No se pudo acceder a la hoja del archivo' });
         }
 
         let jsonData;
         try {
             jsonData = XLSX.utils.sheet_to_json(worksheet);
-            console.log(`Datos extraídos: ${jsonData.length} filas`);
+            console.log(`✅ Datos extraídos: ${jsonData.length} filas\n`);
         } catch (parseError) {
-            console.error('Error parsing JSON from sheet:', parseError.message);
+            console.error('❌ Error parsing JSON from sheet:', parseError.message);
             return res.status(400).json({ error: 'Error al convertir los datos del Excel' });
         }
 
         if (jsonData.length === 0) {
-            console.error('No data rows found');
+            console.error('❌ No data rows found');
             return res.status(400).json({ error: 'El archivo está vacío o no contiene datos válidos' });
         }
 
-        console.log(`Primera fila del Excel:`, JSON.stringify(jsonData[0]));
+        console.log('📋 Primera fila del Excel:');
+        console.log(jsonData[0]);
+        console.log();
 
         // Mapear función (igual a la del frontend)
         const mapearEquipo = (fila) => {
@@ -270,53 +278,78 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
         };
 
         const equiposMapeados = jsonData.map(mapearEquipo);
-        console.log(`Equipos mapeados: ${equiposMapeados.length}`);
-        console.log(`Primer equipo mapeado:`, JSON.stringify(equiposMapeados[0]));
+        console.log(`✅ Equipos mapeados: ${equiposMapeados.length}`);
+        console.log('🔹 Primer equipo mapeado:');
+        console.log(equiposMapeados[0]);
+        console.log();
 
-        // Insertar en la base de datos
-        const query = `INSERT INTO equipos 
-            (marca, modelo, estado, nombre_equipo, fecha_compra, placa, usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk, fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento)
-            VALUES ?`;
-
+        // Preparar valores para insertar
         const values = equiposMapeados.map(e => [
             e.marca, e.modelo, e.estado, e.nombre_equipo, normalizarFecha(e.fecha_compra),
             e.placa, e.usuario, e.correo, e.sistema_operativo, e.numero_serie, e.ubicacion, e.anydesk,
             normalizarFecha(e.fecha_ultimo_mantenimiento), normalizarFecha(e.fecha_proximo_mantenimiento)
         ]);
 
-        console.log(`Query SQL: ${query}`);
-        console.log(`Valores para insertar (primer equipo):`, JSON.stringify(values[0]));
+        console.log('🔹 Primer conjunto de valores para insertar:');
+        console.log(values[0]);
+        console.log();
+
+        // Insertar en la base de datos
+        const query = `INSERT INTO equipos 
+            (marca, modelo, estado, nombre_equipo, fecha_compra, placa, usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk, fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento)
+            VALUES ?`;
+
+        console.log('📝 SQL Query:');
+        console.log(query);
+        console.log();
 
         try {
+            console.log('⏳ Intentando insertar en la base de datos...\n');
             const [result] = await pool.query(query, [values]);
-            console.log(`✅ ${equiposMapeados.length} equipos insertados exitosamente`);
-            console.log(`Resultado de inserción:`, result);
+            console.log(`\n✅✅✅ ¡ÉXITO! ${equiposMapeados.length} equipos insertados correctamente`);
+            console.log(`   Filas afectadas: ${result.affectedRows}`);
+            console.log(`   Last Insert ID: ${result.insertId}\n`);
+
+            res.status(201).json({ 
+                message: `${equiposMapeados.length} equipos importados con éxito`,
+                equipos: equiposMapeados 
+            });
+            
         } catch (dbError) {
-            console.error('DATABASE ERROR DETAILS:');
-            console.error('Código de error:', dbError.code);
-            console.error('Número de error:', dbError.errno);
-            console.error('Mensaje SQL:', dbError.sqlMessage);
-            console.error('Estado SQL:', dbError.sqlState);
-            console.error('Consulta:', dbError.sql);
-            console.error('Stack completo:', dbError.stack);
+            console.log('\n');
+            console.log('❌❌❌ ERROR EN LA BASE DE DATOS ❌❌❌');
+            console.log('========================================');
+            console.log(`Código de Error: ${dbError.code}`);
+            console.log(`Número de Error: ${dbError.errno}`);
+            console.log(`Mensaje SQL: ${dbError.sqlMessage}`);
+            console.log(`Estado SQL: ${dbError.sqlState}`);
+            console.log(`Consulta SQL: ${dbError.sql}`);
+            console.log('========================================');
+            console.log('Error completo:');
+            console.log(dbError);
+            console.log('========================================\n');
             
             return res.status(400).json({ 
                 error: `Error al guardar en la base de datos: ${dbError.sqlMessage || dbError.message}`,
                 code: dbError.code,
+                errno: dbError.errno,
+                sqlState: dbError.sqlState,
                 details: dbError.sqlMessage 
             });
         }
-
-        res.status(201).json({ 
-            message: `${equiposMapeados.length} equipos importados con éxito`,
-            equipos: equiposMapeados 
-        });
         
     } catch (error) {
-        console.error('=== ERROR GENERAL PROCESANDO EXCEL ===');
-        console.error('Nombre del error:', error.name);
-        console.error('Mensaje:', error.message);
-        console.error('Stack:', error.stack);
+        console.log('\n');
+        console.log('❌❌❌ ERROR GENERAL ❌❌❌');
+        console.log('========================================');
+        console.log(`Tipo de Error: ${error.name}`);
+        console.log(`Mensaje: ${error.message}`);
+        console.log('========================================');
+        console.log('Stack trace completo:');
+        console.log(error.stack);
+        console.log('Error completo:');
+        console.log(error);
+        console.log('========================================\n');
         
         res.status(400).json({ 
             error: 'No se pudo procesar el archivo Excel: ' + error.message,
