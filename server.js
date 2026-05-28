@@ -319,61 +319,62 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
         console.log('\n--- INICIO DE IMPORTACIÓN ---');
         const workbook = XLSX.read(req.file.buffer, { type: 'array' });
         
-        // 1. Encontrar la mejor hoja (la que tenga más coincidencias de encabezados)
+        // 1. Encontrar la mejor hoja y la fila de encabezados
         let mejorHoja = workbook.SheetNames[0];
         let maxCoincidencias = 0;
+        let filaEncabezados = 0;
 
         workbook.SheetNames.forEach(name => {
             const sheet = workbook.Sheets[name];
-            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, range: 0 }); // Leer primeras filas
-            const headers = (rows[0] || []).map(h => String(h).toLowerCase().trim());
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
             
-            const coincidencias = headers.filter(h => 
-                ['marca', 'modelo', 'serie', 'usuario', 'placa'].includes(h)
-            ).length;
+            // Buscar en las primeras 20 filas de cada hoja
+            for (let i = 0; i < Math.min(rows.length, 20); i++) {
+                const headers = (rows[i] || []).map(h => String(h).toLowerCase().trim());
+                const coincidencias = headers.filter(h => 
+                    ['marca', 'modelo', 'serie', 'serial', 'usuario', 'placa', 'tipo', 'estado'].includes(h)
+                ).length;
 
-            if (coincidencias > maxCoincidencias) {
-                maxCoincidencias = coincidencias;
-                mejorHoja = name;
+                if (coincidencias > maxCoincidencias) {
+                    maxCoincidencias = coincidencias;
+                    mejorHoja = name;
+                    filaEncabezados = i;
+                }
             }
         });
 
-        console.log(`Hoja seleccionada: "${mejorHoja}" (Coincidencias: ${maxCoincidencias})`);
+        console.log(`Hoja: "${mejorHoja}", Fila encabezados: ${filaEncabezados}, Coincidencias: ${maxCoincidencias}`);
 
         const worksheet = workbook.Sheets[mejorHoja];
-        const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+        // Leer desde la fila de encabezados detectada
+        const rawData = XLSX.utils.sheet_to_json(worksheet, { range: filaEncabezados, defval: "" });
         
-        console.log(`Total filas en bruto: ${rawData.length}`);
-        if (rawData.length > 0) {
-            console.log('Ejemplo de columnas detectadas:', Object.keys(rawData[0]));
-        }
+        console.log(`Total filas leídas: ${rawData.length}`);
 
-        // 2. Filtrado de filas: Menos estricto para capturar todo tipo de equipos
+        // 2. Filtrado de filas: Muy permisivo para no perder equipos
         const jsonData = rawData.filter((fila, index) => {
-            const keys = Object.keys(fila);
-            const marcaKey = keys.find(k => k.toLowerCase().includes('marca'));
-            const modeloKey = keys.find(k => k.toLowerCase().includes('modelo')) || keys.find(k => k.toLowerCase().includes('tipo'));
-            const serieKey = keys.find(k => k.toLowerCase().includes('serial')) || keys.find(k => k.toLowerCase().includes('serie'));
+            const valores = Object.values(fila).join('').toLowerCase();
             
+            // Si la fila está vacía o es el encabezado repetido, ignorar
+            if (valores.length < 5 || valores.includes('fecha_compra')) return false;
+
+            const marcaKey = Object.keys(fila).find(k => k.toLowerCase().includes('marca'));
+            const tipoKey = Object.keys(fila).find(k => k.toLowerCase().includes('tipo'));
+            const serieKey = Object.keys(fila).find(k => k.toLowerCase().includes('serie') || k.toLowerCase().includes('serial'));
+
             const marca = String(fila[marcaKey] || '').trim();
-            const modelo = String(fila[modeloKey] || '').trim();
+            const tipo = String(fila[tipoKey] || '').trim();
             const serie = String(fila[serieKey] || '').trim();
 
-            // REGLAS DE EXCLUSIÓN: Solo bloqueamos si no hay NADA de identificación
-            const tieneIdentificacion = marca.length > 0 || modelo.length > 0 || serie.length > 0;
+            // Pasa si tiene al menos Marca, Tipo o Serie
+            const esValido = marca.length > 0 || tipo.length > 0 || serie.length > 0;
             
-            // Excluimos explícitamente encabezados repetidos o basura conocida
-            const esEncabezado = marca.toUpperCase() === 'MARCA' || modelo.toUpperCase() === 'MODELO';
-            const esNulo = marca.toUpperCase() === 'N/A' && modelo.toUpperCase() === 'N/A';
+            if (index < 5) console.log(`Fila ${index} Check: Marca="${marca}", Tipo="${tipo}" -> OK: ${esValido}`);
 
-            if (index < 10) {
-                console.log(`Fila ${index} debug: Marca="${marca}", Modelo="${modelo}", Serie="${serie}" -> Pasa: ${tieneIdentificacion && !esEncabezado && !esNulo}`);
-            }
-            
-            return tieneIdentificacion && !esEncabezado && !esNulo;
+            return esValido;
         });
 
-        console.log(`Filas después del filtro: ${jsonData.length}`);
+        console.log(`Filas a insertar: ${jsonData.length}`);
 
         const mapearEquipo = (fila) => {
             const texto = (v) => String(v ?? '').trim();
