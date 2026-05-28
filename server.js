@@ -348,29 +348,29 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             console.log('Ejemplo de columnas detectadas:', Object.keys(rawData[0]));
         }
 
-        // 2. Filtrado estricto de filas
+        // 2. Filtrado de filas: Menos estricto para capturar todo tipo de equipos
         const jsonData = rawData.filter((fila, index) => {
-            const marcaKey = Object.keys(fila).find(k => k.toLowerCase().includes('marca'));
-            const modeloKey = Object.keys(fila).find(k => k.toLowerCase().includes('modelo'));
+            const keys = Object.keys(fila);
+            const marcaKey = keys.find(k => k.toLowerCase().includes('marca'));
+            const modeloKey = keys.find(k => k.toLowerCase().includes('modelo')) || keys.find(k => k.toLowerCase().includes('tipo'));
+            const serieKey = keys.find(k => k.toLowerCase().includes('serial')) || keys.find(k => k.toLowerCase().includes('serie'));
             
-            const marca = String(fila[marcaKey] || '').trim().toUpperCase();
-            const modelo = String(fila[modeloKey] || '').trim().toUpperCase();
+            const marca = String(fila[marcaKey] || '').trim();
+            const modelo = String(fila[modeloKey] || '').trim();
+            const serie = String(fila[serieKey] || '').trim();
 
-            // REGLAS DE EXCLUSIÓN MÁS FUERTES:
-            const esBasura = 
-                !marca || 
-                marca === 'MARCA' || 
-                marca === 'N/A' || 
-                marca === 'EDAD' || // Específicamente excluimos "edad" si aparece en la columna marca
-                marca.length < 2;
+            // REGLAS DE EXCLUSIÓN: Solo bloqueamos si no hay NADA de identificación
+            const tieneIdentificacion = marca.length > 0 || modelo.length > 0 || serie.length > 0;
+            
+            // Excluimos explícitamente encabezados repetidos o basura conocida
+            const esEncabezado = marca.toUpperCase() === 'MARCA' || modelo.toUpperCase() === 'MODELO';
+            const esNulo = marca.toUpperCase() === 'N/A' && modelo.toUpperCase() === 'N/A';
 
-            const tieneInfoMinima = marca.length > 1 && modelo.length > 0;
-
-            if (index < 5) {
-                console.log(`Fila ${index} debug: Marca="${marca}", Modelo="${modelo}" -> Pasa: ${!esBasura && tieneInfoMinima}`);
+            if (index < 10) {
+                console.log(`Fila ${index} debug: Marca="${marca}", Modelo="${modelo}", Serie="${serie}" -> Pasa: ${tieneIdentificacion && !esEncabezado && !esNulo}`);
             }
             
-            return !esBasura && tieneInfoMinima;
+            return tieneIdentificacion && !esEncabezado && !esNulo;
         });
 
         console.log(`Filas después del filtro: ${jsonData.length}`);
