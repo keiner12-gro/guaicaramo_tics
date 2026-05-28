@@ -531,11 +531,13 @@ tbody tr:hover td {
 
 .busqueda-input-modern {
     width: 100%;
-    padding: 14px 14px 14px 45px;
+    padding: 14px 145px 14px 45px; /* Aumentado el padding derecho para que el texto no se oculte tras el botón */
     border: 2px solid #e5e7eb;
     border-radius: 14px;
     font-size: 1rem;
     transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
 }
 
 .busqueda-input-modern:focus {
@@ -549,6 +551,7 @@ tbody tr:hover td {
     right: 8px;
     top: 8px;
     bottom: 8px;
+    z-index: 10; /* Asegura que el botón esté por encima del input */
     background: #2563eb;
     color: white;
     padding: 0 20px;
