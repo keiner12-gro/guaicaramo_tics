@@ -12,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 // Configurar multer para archivos Excel
 const upload = multer({
     storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max
     fileFilter: (req, file, cb) => {
         const allowedMimes = [
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -165,22 +166,63 @@ app.post('/api/equipos', async (req, res) => {
     }
 });
 
-// Ruta para carga de Excel con multer
+// Ruta para carga de Excel con multer - MEJORADA CON VALIDACIONES
 app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
     try {
+        console.log('=== INICIANDO CARGA DE ARCHIVO ===');
+        
         if (!req.file) {
+            console.error('No file uploaded');
             return res.status(400).json({ error: 'No se subió archivo' });
         }
 
-        // Leer el archivo Excel desde memoria - CORREGIDO: type: 'array' en lugar de 'buffer'
-        const workbook = XLSX.read(req.file.buffer, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        console.log(`Archivo recibido: ${req.file.originalname}, tamaño: ${req.file.size} bytes`);
 
-        if (jsonData.length === 0) {
+        // Validar que el buffer existe y tiene contenido
+        if (!req.file.buffer || req.file.buffer.length === 0) {
+            console.error('Buffer is empty');
             return res.status(400).json({ error: 'El archivo está vacío' });
         }
+
+        // Leer el archivo Excel desde memoria - CORREGIDO: type: 'array'
+        let workbook;
+        try {
+            workbook = XLSX.read(req.file.buffer, { type: 'array' });
+            console.log(`Workbook leído. Hojas: ${workbook.SheetNames.join(', ')}`);
+        } catch (readError) {
+            console.error('Error reading Excel:', readError.message);
+            return res.status(400).json({ error: 'Error al leer el archivo Excel. Verifica que sea un archivo válido.' });
+        }
+
+        if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+            console.error('No sheets found in workbook');
+            return res.status(400).json({ error: 'El archivo Excel no contiene hojas' });
+        }
+
+        const sheetName = workbook.SheetNames[0];
+        console.log(`Procesando hoja: ${sheetName}`);
+        
+        const worksheet = workbook.Sheets[sheetName];
+        if (!worksheet) {
+            console.error('Worksheet is null or undefined');
+            return res.status(400).json({ error: 'No se pudo acceder a la hoja del archivo' });
+        }
+
+        let jsonData;
+        try {
+            jsonData = XLSX.utils.sheet_to_json(worksheet);
+            console.log(`Datos extraídos: ${jsonData.length} filas`);
+        } catch (parseError) {
+            console.error('Error parsing JSON from sheet:', parseError.message);
+            return res.status(400).json({ error: 'Error al convertir los datos del Excel' });
+        }
+
+        if (jsonData.length === 0) {
+            console.error('No data rows found');
+            return res.status(400).json({ error: 'El archivo está vacío o no contiene datos válidos' });
+        }
+
+        console.log(`Primera fila del Excel:`, jsonData[0]);
 
         // Mapear función (igual a la del frontend)
         const mapearEquipo = (fila) => {
@@ -228,6 +270,7 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
         };
 
         const equiposMapeados = jsonData.map(mapearEquipo);
+        console.log(`Equipos mapeados: ${equiposMapeados.length}`);
 
         // Insertar en la base de datos
         const query = `INSERT INTO equipos 
@@ -240,15 +283,24 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             normalizarFecha(e.fecha_ultimo_mantenimiento), normalizarFecha(e.fecha_proximo_mantenimiento)
         ]);
 
-        await pool.query(query, [values]);
+        try {
+            await pool.query(query, [values]);
+            console.log(`✅ ${equiposMapeados.length} equipos insertados exitosamente`);
+        } catch (dbError) {
+            console.error('Database insertion error:', dbError.message);
+            return res.status(400).json({ error: 'Error al guardar en la base de datos: ' + dbError.message });
+        }
 
         res.status(201).json({ 
             message: `${equiposMapeados.length} equipos importados con éxito`,
             equipos: equiposMapeados 
         });
+        
     } catch (error) {
-        console.error('Error procesando Excel:', error);
-        res.status(400).json({ error: 'No se pudo procesar el archivo Excel. Verifica el formato.' });
+        console.error('=== ERROR PROCESANDO EXCEL ===');
+        console.error('Stack:', error.stack);
+        console.error('Mensaje:', error.message);
+        res.status(400).json({ error: 'No se pudo procesar el archivo Excel. Verifica el formato: ' + error.message });
     }
 });
 
