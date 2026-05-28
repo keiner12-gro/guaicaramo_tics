@@ -166,7 +166,7 @@ app.post('/api/equipos', async (req, res) => {
     }
 });
 
-// Ruta para carga de Excel con multer - MEJORADA CON VALIDACIONES
+// Ruta para carga de Excel con multer - MEJORADA CON LOGS DETALLADOS
 app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
     try {
         console.log('=== INICIANDO CARGA DE ARCHIVO ===');
@@ -184,7 +184,7 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             return res.status(400).json({ error: 'El archivo está vacío' });
         }
 
-        // Leer el archivo Excel desde memoria - CORREGIDO: type: 'array'
+        // Leer el archivo Excel desde memoria
         let workbook;
         try {
             workbook = XLSX.read(req.file.buffer, { type: 'array' });
@@ -222,7 +222,7 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             return res.status(400).json({ error: 'El archivo está vacío o no contiene datos válidos' });
         }
 
-        console.log(`Primera fila del Excel:`, jsonData[0]);
+        console.log(`Primera fila del Excel:`, JSON.stringify(jsonData[0]));
 
         // Mapear función (igual a la del frontend)
         const mapearEquipo = (fila) => {
@@ -271,6 +271,7 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
 
         const equiposMapeados = jsonData.map(mapearEquipo);
         console.log(`Equipos mapeados: ${equiposMapeados.length}`);
+        console.log(`Primer equipo mapeado:`, JSON.stringify(equiposMapeados[0]));
 
         // Insertar en la base de datos
         const query = `INSERT INTO equipos 
@@ -283,12 +284,27 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             normalizarFecha(e.fecha_ultimo_mantenimiento), normalizarFecha(e.fecha_proximo_mantenimiento)
         ]);
 
+        console.log(`Query SQL: ${query}`);
+        console.log(`Valores para insertar (primer equipo):`, JSON.stringify(values[0]));
+
         try {
-            await pool.query(query, [values]);
+            const [result] = await pool.query(query, [values]);
             console.log(`✅ ${equiposMapeados.length} equipos insertados exitosamente`);
+            console.log(`Resultado de inserción:`, result);
         } catch (dbError) {
-            console.error('Database insertion error:', dbError.message);
-            return res.status(400).json({ error: 'Error al guardar en la base de datos: ' + dbError.message });
+            console.error('DATABASE ERROR DETAILS:');
+            console.error('Código de error:', dbError.code);
+            console.error('Número de error:', dbError.errno);
+            console.error('Mensaje SQL:', dbError.sqlMessage);
+            console.error('Estado SQL:', dbError.sqlState);
+            console.error('Consulta:', dbError.sql);
+            console.error('Stack completo:', dbError.stack);
+            
+            return res.status(400).json({ 
+                error: `Error al guardar en la base de datos: ${dbError.sqlMessage || dbError.message}`,
+                code: dbError.code,
+                details: dbError.sqlMessage 
+            });
         }
 
         res.status(201).json({ 
@@ -297,10 +313,15 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
         });
         
     } catch (error) {
-        console.error('=== ERROR PROCESANDO EXCEL ===');
-        console.error('Stack:', error.stack);
+        console.error('=== ERROR GENERAL PROCESANDO EXCEL ===');
+        console.error('Nombre del error:', error.name);
         console.error('Mensaje:', error.message);
-        res.status(400).json({ error: 'No se pudo procesar el archivo Excel. Verifica el formato: ' + error.message });
+        console.error('Stack:', error.stack);
+        
+        res.status(400).json({ 
+            error: 'No se pudo procesar el archivo Excel: ' + error.message,
+            details: error.message 
+        });
     }
 });
 
