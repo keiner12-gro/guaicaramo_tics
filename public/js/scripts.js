@@ -126,6 +126,12 @@ const columnasEquipos = [
 ];
 
 const renderizarElementos = (elementos, permitirEliminar = false) => {
+    // 🛡️ BLINDAJE: Si no es un arreglo válido, lo volvemos un arreglo vacío
+    if (!elementos || !Array.isArray(elementos)) {
+        console.warn("renderizarElementos recibió datos inválidos:", elementos);
+        elementos = []; 
+    }
+
     const cuerpoTabla = document.getElementById("elementos-body");
     if (!cuerpoTabla) return;
 
@@ -172,6 +178,12 @@ const renderizarElementos = (elementos, permitirEliminar = false) => {
 };
 
 const renderizarEquipos = (equipos, permitirEliminar = false) => {
+    // 🛡️ BLINDAJE: Si no es un arreglo válido, lo volvemos un arreglo vacío
+    if (!equipos || !Array.isArray(equipos)) {
+        console.warn("renderizarEquipos recibió datos inválidos:", equipos);
+        equipos = []; 
+    }
+
     const cuerpoTabla = document.getElementById("equipos-body") || document.getElementById("equipos-eliminar-body");
     const contador = document.getElementById("contador-equipos");
     if (!cuerpoTabla) return;
@@ -195,7 +207,6 @@ const renderizarEquipos = (equipos, permitirEliminar = false) => {
         fila.className = "hover:bg-blue-50/50 transition-colors";
 
         if (permitirEliminar) {
-            // Vista simplificada para eliminar con mejor diseño
             const campos = [
                 { campo: "marca", extra: "font-bold text-gray-900" },
                 { campo: "modelo", extra: "text-gray-700" },
@@ -222,7 +233,6 @@ const renderizarEquipos = (equipos, permitirEliminar = false) => {
             celdaAccion.appendChild(boton);
             fila.appendChild(celdaAccion);
         } else {
-            // Vista moderna con badges y diseño mejorado
             const crearCelda = (contenido, extraClass = "") => {
                 const celda = document.createElement("td");
                 celda.className = `px-6 py-4 border-b border-gray-100 ${extraClass}`;
@@ -329,6 +339,7 @@ const registrarEquipo = () => {
 
             if (!respuesta.ok) throw new Error("Error en el registro");
 
+            // Solo mostramos el log si metimos datos en un arreglo válido
             mostrarLogImportacion([equipo]);
             formulario.reset();
             await alerta("success", "Registro exitoso", "Equipo registrado correctamente.");
@@ -339,6 +350,12 @@ const registrarEquipo = () => {
 };
 
 const mostrarLogImportacion = (equipos) => {
+    // 🛡️ BLINDAJE ESTRELLA: Si no es un arreglo válido, paramos aquí suavemente
+    if (!equipos || !Array.isArray(equipos)) {
+        console.warn("El servidor no envió el detalle de equipos, pero la importación se realizó.");
+        return; 
+    }
+
     const logSection = document.getElementById("import-log");
     const logBody = document.getElementById("log-body");
     if (!logSection || !logBody) return;
@@ -359,10 +376,6 @@ const mostrarLogImportacion = (equipos) => {
     });
 };
 
-// ==========================================
-// ESTA ES LA FUNCIÓN QUE CAUSABA EL PROBLEMA
-// AHORA ESTÁ ARREGLADA Y CON ACTUALIZACIÓN DE TABLA
-// ==========================================
 const inicializarExcelImport = () => {
     const inputExcel = document.getElementById("excel-import");
     if (!inputExcel) return;
@@ -386,9 +399,14 @@ const inicializarExcelImport = () => {
                 throw new Error(resultado.error || 'Error al subir archivo');
             }
 
-            // Ya no dará error porque el backend envía "resultado.equipos"
-            mostrarLogImportacion(resultado.equipos);
-            await alerta("success", "Importación Exitosa", `${resultado.equipos.length} equipos guardados automáticamente.`);
+            // 🛡️ BLINDAJE 2: Revisamos qué nos mandó el backend
+            if (resultado.equipos && Array.isArray(resultado.equipos)) {
+                mostrarLogImportacion(resultado.equipos);
+                await alerta("success", "Importación Exitosa", `${resultado.equipos.length} equipos guardados automáticamente.`);
+            } else {
+                await alerta("success", "Importación Exitosa", resultado.message || "Equipos guardados correctamente.");
+            }
+            
             inputExcel.value = "";
 
             // Actualizamos la tabla principal si está visible
