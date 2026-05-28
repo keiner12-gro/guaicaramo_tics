@@ -344,20 +344,33 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
         const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
         
         console.log(`Total filas en bruto: ${rawData.length}`);
+        if (rawData.length > 0) {
+            console.log('Ejemplo de columnas detectadas:', Object.keys(rawData[0]));
+        }
 
         // 2. Filtrado estricto de filas
-        const jsonData = rawData.filter(fila => {
-            // Buscamos el valor de la columna que represente la MARCA
+        const jsonData = rawData.filter((fila, index) => {
             const marcaKey = Object.keys(fila).find(k => k.toLowerCase().includes('marca'));
-            const marca = String(fila[marcaKey] || '').trim().toUpperCase();
-
-            // REGLAS DE EXCLUSIÓN:
-            if (!marca) return false;                  // Si está vacío
-            if (marca === 'MARCA') return false;       // Si es el encabezado repetido
-            if (marca === 'N/A') return false;         // Si es "N/A"
-            if (marca.length < 2) return false;        // Basura de 1 carácter
+            const modeloKey = Object.keys(fila).find(k => k.toLowerCase().includes('modelo'));
             
-            return true;
+            const marca = String(fila[marcaKey] || '').trim().toUpperCase();
+            const modelo = String(fila[modeloKey] || '').trim().toUpperCase();
+
+            // REGLAS DE EXCLUSIÓN MÁS FUERTES:
+            const esBasura = 
+                !marca || 
+                marca === 'MARCA' || 
+                marca === 'N/A' || 
+                marca === 'EDAD' || // Específicamente excluimos "edad" si aparece en la columna marca
+                marca.length < 2;
+
+            const tieneInfoMinima = marca.length > 1 && modelo.length > 0;
+
+            if (index < 5) {
+                console.log(`Fila ${index} debug: Marca="${marca}", Modelo="${modelo}" -> Pasa: ${!esBasura && tieneInfoMinima}`);
+            }
+            
+            return !esBasura && tieneInfoMinima;
         });
 
         console.log(`Filas después del filtro: ${jsonData.length}`);
