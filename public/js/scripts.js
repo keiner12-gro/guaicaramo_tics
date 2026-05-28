@@ -568,7 +568,7 @@ const iniciarExportaciones = () => {
     }
 
     if (btnExcelEqu) {
-        btnExcelEqu.onclick = async () => {
+    btnExcelEqu.onclick = async () => {
             const datos = await obtenerEquipos();
             const tabla = crearTablaExportacion(datos, columnasEquipos);
             descargarArchivo(tabla, `equipos-${fechaArchivo()}.xls`, "application/vnd.ms-excel");
