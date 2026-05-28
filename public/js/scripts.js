@@ -359,6 +359,10 @@ const mostrarLogImportacion = (equipos) => {
     });
 };
 
+// ==========================================
+// ESTA ES LA FUNCIÓN QUE CAUSABA EL PROBLEMA
+// AHORA ESTÁ ARREGLADA Y CON ACTUALIZACIÓN DE TABLA
+// ==========================================
 const inicializarExcelImport = () => {
     const inputExcel = document.getElementById("excel-import");
     if (!inputExcel) return;
@@ -382,9 +386,20 @@ const inicializarExcelImport = () => {
                 throw new Error(resultado.error || 'Error al subir archivo');
             }
 
+            // Ya no dará error porque el backend envía "resultado.equipos"
             mostrarLogImportacion(resultado.equipos);
             await alerta("success", "Importación Exitosa", `${resultado.equipos.length} equipos guardados automáticamente.`);
             inputExcel.value = "";
+
+            // Actualizamos la tabla principal si está visible
+            const esVistaConsulta = Boolean(document.getElementById("equipos-body"));
+            const esVistaEliminar = Boolean(document.getElementById("tabla-equipos-eliminar"));
+            
+            if (esVistaConsulta || esVistaEliminar) {
+                const equiposActualizados = await obtenerEquipos();
+                renderizarEquipos(equiposActualizados, esVistaEliminar);
+            }
+
         } catch (error) {
             console.error("Error Excel:", error);
             await alerta("error", "Error", error.message || "No se pudo procesar el archivo Excel. Verifica el formato.");
