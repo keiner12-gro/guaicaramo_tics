@@ -172,8 +172,8 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             return res.status(400).json({ error: 'No se subió archivo' });
         }
 
-        // Leer el archivo Excel desde memoria
-        const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+        // Leer el archivo Excel desde memoria - CORREGIDO: type: 'array' en lugar de 'buffer'
+        const workbook = XLSX.read(req.file.buffer, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
