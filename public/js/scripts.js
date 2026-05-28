@@ -30,13 +30,33 @@ const texto = (valor) => String(valor ?? "").trim();
 const fechaExcel = (valor) => {
     const limpio = texto(valor);
     if (!limpio) return "";
+
+    // 1. Si ya es YYYY-MM-DD
     if (/^\d{4}-\d{2}-\d{2}$/.test(limpio)) return limpio;
 
+    // 2. Si es un serial de Excel
     const serial = Number(limpio);
-    if (!Number.isFinite(serial) || serial < 1 || serial > 60000) return limpio;
+    if (Number.isFinite(serial) && serial >= 1 && serial <= 100000) {
+        try {
+            const fecha = new Date(Date.UTC(1899, 11, 30) + serial * 86400000);
+            return fecha.toISOString().slice(0, 10);
+        } catch (e) {
+            return "";
+        }
+    }
 
-    const fecha = new Date(Date.UTC(1899, 11, 30) + serial * 86400000);
-    return fecha.toISOString().slice(0, 10);
+    // 3. Intentar parsear como fecha genérica
+    const d = new Date(limpio);
+    if (!isNaN(d.getTime())) {
+        try {
+            return d.toISOString().slice(0, 10);
+        } catch (e) {
+            return "";
+        }
+    }
+
+    // 4. Si no es nada de lo anterior, devolver vacío para evitar errores
+    return "";
 };
 
 const valorFila = (fila, nombres) => {
@@ -63,8 +83,8 @@ const mapearEquipo = (fila) => ({
     numero_serie: valorFila(fila, ["Serial", "Serial CPU", "Serie", "Numero de serie", "Numero serie", "Número de serie", "S/N"]),
     ubicacion: valorFila(fila, ["Ubicacion", "Ubicación", "Sede"]),
     anydesk: valorFila(fila, ["AnyDesk", "Anydesk", "Anidex", "Anidesk"]),
-    fecha_ultimo_mantenimiento: valorFila(fila, ["fecha_ultimo_mantenimiento", "Ultimo mantenimiento", "Último mantenimiento", "Manto anterior", "Fecha mantenimiento"]),
-    fecha_proximo_mantenimiento: valorFila(fila, ["fecha_proximo_mantenimiento", "Proximo mantenimiento", "Próximo mantenimiento", "Proxima revision", "Próxima revisión"])
+    fecha_ultimo_mantenimiento: fechaExcel(valorFila(fila, ["fecha_ultimo_mantenimiento", "Ultimo mantenimiento", "Último mantenimiento", "Manto anterior", "Fecha mantenimiento"])),
+    fecha_proximo_mantenimiento: fechaExcel(valorFila(fila, ["fecha_proximo_mantenimiento", "Proximo mantenimiento", "Próximo mantenimiento", "Proxima revision", "Próxima revisión"]))
 });
 
 const alerta = (icono, titulo, mensaje) => {

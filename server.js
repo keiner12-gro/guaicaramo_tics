@@ -108,21 +108,36 @@ const normalizarFecha = (valor) => {
 
     const texto = String(valor).trim();
 
+    // 1. Si ya es YYYY-MM-DD
     if (/^\d{4}-\d{2}-\d{2}$/.test(texto)) {
         return texto;
     }
 
+    // 2. Si es un serial de Excel (número)
     const serial = Number(texto);
-
-    if (!Number.isFinite(serial) || serial < 1 || serial > 60000) {
-        return texto || null;
+    if (Number.isFinite(serial) && serial >= 1 && serial <= 100000) {
+        try {
+            const fecha = new Date(
+                Date.UTC(1899, 11, 30) + serial * 86400000
+            );
+            return fecha.toISOString().slice(0, 10);
+        } catch (e) {
+            return null;
+        }
     }
 
-    const fecha = new Date(
-        Date.UTC(1899, 11, 30) + serial * 86400000
-    );
+    // 3. Intentar parsear como fecha genérica
+    const d = new Date(texto);
+    if (!isNaN(d.getTime())) {
+        try {
+            return d.toISOString().slice(0, 10);
+        } catch (e) {
+            return null;
+        }
+    }
 
-    return fecha.toISOString().slice(0, 10);
+    // 4. Si no es nada de lo anterior (como 'P'), devolver null para no romper SQL
+    return null;
 };
 
 /* ======================================================
