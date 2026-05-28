@@ -165,14 +165,61 @@ const ensureEquipoColumns = async () => {
 };
 
 /* ======================================================
+   RUTAS ELEMENTOS
+====================================================== */
+
+app.get('/api/elementos', async (req, res) => {
+    try {
+        const { search } = req.query;
+        let query = "SELECT id, cantidad, modelo, marca, serial, placa, descripcion, DATE_FORMAT(fecha_ingreso, '%Y-%m-%d') AS fechaIngreso, DATE_FORMAT(fecha_baja, '%Y-%m-%d') AS fechaBaja FROM elementos";
+        let params = [];
+
+        if (search) {
+            query += ` WHERE descripcion LIKE ? OR marca LIKE ? OR serial LIKE ? OR placa LIKE ? OR modelo LIKE ?`;
+            const searchVal = `%${search}%`;
+            params = [searchVal, searchVal, searchVal, searchVal, searchVal];
+        }
+
+        const [rows] = await pool.query(query, params);
+        res.json(rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/elementos', async (req, res) => {
+    try {
+        const { cantidad, modelo, descripcion, marca, serial, placa, fechaIngreso, fechaBaja } = req.body;
+        const query = 'INSERT INTO elementos (cantidad, modelo, descripcion, marca, serial, placa, fecha_ingreso, fecha_baja) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        const [result] = await pool.query(query, [cantidad, modelo, descripcion, marca, serial, placa, fechaIngreso || null, fechaBaja || null]);
+        res.status(201).json({ id: result.insertId, message: 'Elemento registrado con éxito' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/elementos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query('DELETE FROM elementos WHERE id = ?', [id]);
+        res.json({ message: 'Elemento eliminado con éxito' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/* ======================================================
    OBTENER EQUIPOS
 ====================================================== */
 
 app.get('/api/equipos', async (req, res) => {
 
     try {
-
-        const [rows] = await pool.query(`
+        const { search } = req.query;
+        let query = `
             SELECT
                 id,
                 marca,
@@ -190,8 +237,16 @@ app.get('/api/equipos', async (req, res) => {
                 DATE_FORMAT(fecha_ultimo_mantenimiento, '%Y-%m-%d') AS fechaUltimoMantenimiento,
                 DATE_FORMAT(fecha_proximo_mantenimiento, '%Y-%m-%d') AS fechaProximoMantenimiento
             FROM equipos
-        `);
+        `;
+        let params = [];
 
+        if (search) {
+            query += ` WHERE marca LIKE ? OR modelo LIKE ? OR estado LIKE ? OR nombre_equipo LIKE ? OR numero_serie LIKE ? OR usuario LIKE ? OR correo LIKE ? OR placa LIKE ? OR sistema_operativo LIKE ? OR ubicacion LIKE ? OR anydesk LIKE ?`;
+            const searchVal = `%${search}%`;
+            params = Array(11).fill(searchVal);
+        }
+
+        const [rows] = await pool.query(query, params);
         res.json(rows);
 
     } catch (error) {
@@ -201,6 +256,41 @@ app.get('/api/equipos', async (req, res) => {
         res.status(500).json({
             error: error.message
         });
+    }
+});
+
+app.post('/api/equipos', async (req, res) => {
+    try {
+        const { 
+            marca, modelo, estado, nombre_equipo, fecha_compra, placa,
+            usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk,
+            fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento 
+        } = req.body;
+
+        const query = `INSERT INTO equipos 
+            (marca, modelo, estado, nombre_equipo, fecha_compra, placa, usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk, fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+        const [result] = await pool.query(query, [
+            marca, modelo, estado, nombre_equipo, normalizarFecha(fecha_compra), placa,
+            usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk,
+            normalizarFecha(fecha_ultimo_mantenimiento), normalizarFecha(fecha_proximo_mantenimiento)
+        ]);
+
+        res.status(201).json({ id: result.insertId, message: 'Equipo registrado con éxito' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/equipos/all', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM equipos');
+        res.json({ message: 'Todos los equipos han sido eliminados con éxito' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
     }
 });
 
