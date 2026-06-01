@@ -349,128 +349,260 @@ app.delete('/api/equipos/all', async (req, res) => {
 });
 
 /* ======================================================
-   SUBIR EXCEL: Lógica ultra-robusta y filtrado estricto
+   SUBIR EXCEL: Lógica multi-hoja y mapeo flexible
 ====================================================== */
 app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ error: 'No se subió archivo' });
 
-        console.log('\n--- INICIO DE IMPORTACIÓN ---');
-        const workbook = XLSX.read(req.file.buffer, { type: 'array' });
-        
-        // 1. Encontrar la mejor hoja y la fila de encabezados
-        let mejorHoja = workbook.SheetNames[0];
-        let maxCoincidencias = 0;
-        let filaEncabezados = 0;
+        if (!req.file) {
+            return res.status(400).json({
+                error: 'No se subió archivo'
+            });
+        }
 
-        workbook.SheetNames.forEach(name => {
-            const sheet = workbook.Sheets[name];
-            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-            
-            // Buscar en las primeras 20 filas de cada hoja
-            for (let i = 0; i < Math.min(rows.length, 20); i++) {
-                const headers = (rows[i] || []).map(h => String(h).toLowerCase().trim());
-                const coincidencias = headers.filter(h => 
-                    ['marca', 'modelo', 'serie', 'serial', 'usuario', 'placa', 'tipo', 'estado'].includes(h)
-                ).length;
+        console.log('\n========== IMPORTANDO EXCEL ==========');
 
-                if (coincidencias > maxCoincidencias) {
-                    maxCoincidencias = coincidencias;
-                    mejorHoja = name;
-                    filaEncabezados = i;
+        const workbook = XLSX.read(
+            req.file.buffer,
+            { type: 'buffer' }
+        );
+
+        console.log('Hojas encontradas:');
+        console.log(workbook.SheetNames);
+
+        let todosLosRegistros = [];
+
+        // LEER TODAS LAS HOJAS
+        for (const nombreHoja of workbook.SheetNames) {
+
+            const worksheet = workbook.Sheets[nombreHoja];
+
+            const datosHoja = XLSX.utils.sheet_to_json(
+                worksheet,
+                {
+                    defval: ''
                 }
-            }
-        });
+            );
 
-        console.log(`Hoja: "${mejorHoja}", Fila encabezados: ${filaEncabezados}, Coincidencias: ${maxCoincidencias}`);
+            console.log(
+                `Hoja "${nombreHoja}" -> ${datosHoja.length} filas`
+            );
 
-        const worksheet = workbook.Sheets[mejorHoja];
-        // Leer desde la fila de encabezados detectada
-        const rawData = XLSX.utils.sheet_to_json(worksheet, { range: filaEncabezados, defval: "" });
-        
-        console.log(`Total filas leídas: ${rawData.length}`);
+            todosLosRegistros.push(...datosHoja);
+        }
 
-        // 2. Filtrado de filas: Muy permisivo para no perder equipos
-        const jsonData = rawData.filter((fila, index) => {
-            const valores = Object.values(fila).join('').toLowerCase();
-            
-            // Si la fila está vacía o es el encabezado repetido, ignorar
-            if (valores.length < 5 || valores.includes('fecha_compra')) return false;
+        console.log(
+            `Total registros encontrados: ${todosLosRegistros.length}`
+        );
 
-            const marcaKey = Object.keys(fila).find(k => k.toLowerCase().includes('marca'));
-            const tipoKey = Object.keys(fila).find(k => k.toLowerCase().includes('tipo'));
-            const serieKey = Object.keys(fila).find(k => k.toLowerCase().includes('serie') || k.toLowerCase().includes('serial'));
+        if (todosLosRegistros.length === 0) {
+            return res.status(400).json({
+                error: 'No se encontraron datos'
+            });
+        }
 
-            const marca = String(fila[marcaKey] || '').trim();
-            const tipo = String(fila[tipoKey] || '').trim();
-            const serie = String(fila[serieKey] || '').trim();
+        console.log('COLUMNAS DETECTADAS:');
+        console.log(
+            Object.keys(todosLosRegistros[0])
+        );
 
-            // Pasa si tiene al menos Marca, Tipo o Serie
-            const esValido = marca.length > 0 || tipo.length > 0 || serie.length > 0;
-            
-            if (index < 5) console.log(`Fila ${index} Check: Marca="${marca}", Tipo="${tipo}" -> OK: ${esValido}`);
+        const normalizarTexto = (texto) =>
+            String(texto || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '');
 
-            return esValido;
-        });
+        const obtenerValor = (fila, nombres) => {
 
-        console.log(`Filas a insertar: ${jsonData.length}`);
+            const buscados = nombres.map(
+                n => normalizarTexto(n)
+            );
 
-        const mapearEquipo = (fila) => {
-            const texto = (v) => String(v ?? '').trim();
-            const normalizar = (v) => texto(v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const clave = Object.keys(fila).find(
+                k => buscados.includes(
+                    normalizarTexto(k)
+                )
+            );
 
-            const valorFila = (nombres) => {
-                const buscados = nombres.map(normalizar);
-                const clave = Object.keys(fila).find(k => buscados.includes(normalizar(k)));
-                // IMPORTANTE: Si la clave es __EMPTY, la ignoramos para evitar "edad" u otros datos basura
-                if (clave && clave.startsWith('__EMPTY')) return '';
-                return clave ? texto(fila[clave]) : '';
-            };
-
-            return {
-                marca: valorFila(['Marca', 'Fabricante']),
-                modelo: valorFila(['Modelo', 'Modelo CPU', 'Tipo']),
-                estado: valorFila(['Estado', 'Condicion']),
-                nombre_equipo: valorFila(['Nombre equipo', 'Hostname', 'Nombre PC']),
-                fecha_compra: valorFila(['Fecha compra', 'Compra']),
-                placa: valorFila(['Placa', 'Activo']),
-                usuario: valorFila(['Responsable', 'Usuario', 'Funcionario', 'Nombre']),
-                correo: valorFila(['Correo', 'Email']),
-                sistema_operativo: valorFila(['Sistema operativo', 'SO']),
-                numero_serie: valorFila(['Serial', 'Serie', 'S/N']),
-                ubicacion: valorFila(['Ubicacion', 'Sede', 'Oficina']),
-                anydesk: valorFila(['AnyDesk']),
-                fecha_ultimo_mantenimiento: valorFila(['Fecha mantenimiento', 'Ultimo mantenimiento']),
-                fecha_proximo_mantenimiento: valorFila(['Proxima revision', 'Proximo mantenimiento'])
-            };
+            return clave
+                ? String(fila[clave] || '').trim()
+                : '';
         };
 
-        const equiposMapeados = jsonData.map(mapearEquipo);
+        const equipos = todosLosRegistros.map(fila => ({
 
-        const values = equiposMapeados.map(e => [
-            e.marca, e.modelo, e.estado, e.nombre_equipo,
-            normalizarFecha(e.fecha_compra),
-            e.placa, e.usuario, e.correo, e.sistema_operativo, e.numero_serie, e.ubicacion, e.anydesk,
-            normalizarFecha(e.fecha_ultimo_mantenimiento),
-            normalizarFecha(e.fecha_proximo_mantenimiento)
+            marca: obtenerValor(fila, [
+                'marca',
+                'fabricante'
+            ]),
+
+            modelo: obtenerValor(fila, [
+                'modelo',
+                'tipo',
+                'modelo cpu'
+            ]),
+
+            estado: obtenerValor(fila, [
+                'estado'
+            ]),
+
+            nombre_equipo: obtenerValor(fila, [
+                'nombre equipo',
+                'nombre del equipo',
+                'equipo',
+                'descripcion',
+                'descripción',
+                'activo',
+                'hostname',
+                'nombre pc'
+            ]),
+
+            fecha_compra: obtenerValor(fila, [
+                'fecha compra',
+                'compra'
+            ]),
+
+            placa: obtenerValor(fila, [
+                'placa',
+                'placa tics',
+                'activo'
+            ]),
+
+            usuario: obtenerValor(fila, [
+                'usuario',
+                'responsable',
+                'funcionario',
+                'nombre'
+            ]),
+
+            correo: obtenerValor(fila, [
+                'correo',
+                'email'
+            ]),
+
+            sistema_operativo: obtenerValor(fila, [
+                'sistema operativo',
+                'so'
+            ]),
+
+            numero_serie: obtenerValor(fila, [
+                'serial',
+                'serie',
+                'numero serie',
+                'n serie',
+                's/n'
+            ]),
+
+            ubicacion: obtenerValor(fila, [
+                'ubicacion',
+                'ubicación',
+                'sede',
+                'oficina'
+            ]),
+
+            anydesk: obtenerValor(fila, [
+                'anydesk'
+            ]),
+
+            fecha_ultimo_mantenimiento: obtenerValor(fila, [
+                'fecha mantenimiento',
+                'ultimo mantenimiento'
+            ]),
+
+            fecha_proximo_mantenimiento: obtenerValor(fila, [
+                'proximo mantenimiento',
+                'proxima revision'
+            ])
+        }));
+
+        const equiposValidos = equipos.filter(e =>
+
+            e.marca ||
+            e.modelo ||
+            e.nombre_equipo ||
+            e.numero_serie ||
+            e.usuario
+        );
+
+        console.log(
+            `Equipos válidos: ${equiposValidos.length}`
+        );
+
+        if (equiposValidos.length === 0) {
+            return res.status(400).json({
+                error: 'No se detectaron equipos válidos'
+            });
+        }
+
+        const values = equiposValidos.map(e => [
+
+            e.marca,
+            e.modelo,
+            e.estado,
+            e.nombre_equipo,
+
+            normalizarFecha(
+                e.fecha_compra
+            ),
+
+            e.placa,
+            e.usuario,
+            e.correo,
+            e.sistema_operativo,
+            e.numero_serie,
+            e.ubicacion,
+            e.anydesk,
+
+            normalizarFecha(
+                e.fecha_ultimo_mantenimiento
+            ),
+
+            normalizarFecha(
+                e.fecha_proximo_mantenimiento
+            )
         ]);
 
-        const query = `INSERT INTO equipos 
-            (marca, modelo, estado, nombre_equipo, fecha_compra, placa, usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk, fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento)
-            VALUES ?`;
+        const query = `
+            INSERT INTO equipos (
+                marca,
+                modelo,
+                estado,
+                nombre_equipo,
+                fecha_compra,
+                placa,
+                usuario,
+                correo,
+                sistema_operativo,
+                numero_serie,
+                ubicacion,
+                anydesk,
+                fecha_ultimo_mantenimiento,
+                fecha_proximo_mantenimiento
+            )
+            VALUES ?
+        `;
 
-        const [result] = await pool.query(query, [values]);
+        const [result] = await pool.query(
+            query,
+            [values]
+        );
 
-        console.log(`✅ ÉXITO: ${result.affectedRows} filas insertadas.`);
-        console.log('--- FIN DE IMPORTACIÓN ---\n');
+        console.log(
+            `Insertados: ${result.affectedRows}`
+        );
 
-        res.status(201).json({ 
-            message: `Importación exitosa: ${result.affectedRows} equipos registrados.`,
-            detalles: { total_leidas: rawData.length, procesadas: result.affectedRows }
+        res.status(201).json({
+            message: `${result.affectedRows} equipos importados correctamente`
         });
+
     } catch (error) {
-        console.error('❌ ERROR EN UPLOAD:', error);
-        res.status(500).json({ error: error.message });
+
+        console.error(error);
+
+        res.status(500).json({
+            error: error.message
+        });
     }
 });
 
