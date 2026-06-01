@@ -529,49 +529,19 @@ const eliminarTodosEquipos = async () => {
     }
 };
 
-const fechaArchivo = () => new Date().toISOString().slice(0, 10);
-const escaparHtml = (valor) => {
-    const div = document.createElement("div");
-    div.textContent = valor || "";
-    return div.innerHTML;
-};
-
-const descargarArchivo = (contenido, nombre, tipo) => {
-    const archivo = new Blob([contenido], { type: tipo });
-    const enlace = document.createElement("a");
-    enlace.href = URL.createObjectURL(archivo);
-    enlace.download = nombre;
-    enlace.click();
-};
-
-const crearTablaExportacion = (datos, columnas) => {
-    const estiloTh = 'style="background-color: #2563eb; color: white; border: 1px solid #000; padding: 10px;"';
-    const estiloTd = 'style="border: 1px solid #000; padding: 8px;"';
-    const encabezados = columnas.map(col => `<th ${estiloTh}>${escaparHtml(col.titulo.toUpperCase())}</th>`).join("");
-    const filas = datos.map(item => {
-        const celdas = columnas.map(col => `<td ${estiloTd}>${escaparHtml(item[col.campo] || "-")}</td>`).join("");
-        return `<tr>${celdas}</tr>`;
-    }).join("");
-    return `<table border="1" style="border-collapse: collapse;"><thead><tr>${encabezados}</tr></thead><tbody>${filas}</tbody></table>`;
-};
-
 const iniciarExportaciones = () => {
     const btnExcelEle = document.getElementById("exportar-excel");
     const btnExcelEqu = document.getElementById("exportar-equipos-excel");
 
     if (btnExcelEle) {
-        btnExcelEle.onclick = async () => {
-            const datos = await obtenerElementos();
-            const tabla = crearTablaExportacion(datos, columnasElementos);
-            descargarArchivo(tabla, `elementos-${fechaArchivo()}.xls`, "application/vnd.ms-excel");
+        btnExcelEle.onclick = () => {
+            window.location.href = '/api/export/elementos';
         };
     }
 
     if (btnExcelEqu) {
-    btnExcelEqu.onclick = async () => {
-            const datos = await obtenerEquipos();
-            const tabla = crearTablaExportacion(datos, columnasEquipos);
-            descargarArchivo(tabla, `equipos-${fechaArchivo()}.xls`, "application/vnd.ms-excel");
+        btnExcelEqu.onclick = () => {
+            window.location.href = '/api/export/equipos';
         };
     }
 };

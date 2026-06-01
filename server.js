@@ -48,14 +48,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
 /* ======================================================
-   MYSQL CONNECTION
+   VARIABLES DE ENTORNO (CONFIGURACIÓN)
 ====================================================== */
-
-console.log('================================');
-console.log('DB_HOST:', process.env.DB_HOST);
-console.log('DB_PORT:', process.env.DB_PORT);
-console.log('DB_NAME:', process.env.DB_NAME);
-console.log('================================');
+console.log('\n======================================================');
+console.log('       ⚙️  CONFIGURACIÓN DE ENTORNO DETECTADA');
+console.log('======================================================');
+console.log(`📡 PUERTO:    ${process.env.PORT || 3000}`);
+console.log(`🏠 DB HOST:   ${process.env.DB_HOST}`);
+console.log(`🔌 DB PORT:   ${process.env.DB_PORT}`);
+console.log(`👤 DB USER:   ${process.env.DB_USER}`);
+console.log(`🗄️  DB NAME:   ${process.env.DB_NAME}`);
+console.log('======================================================\n');
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
@@ -83,19 +86,55 @@ const pool = mysql.createPool({
 (async () => {
     try {
         const conn = await pool.getConnection();
-
-        console.log('================================');
-        console.log('✅ MYSQL CONECTADO');
-        console.log('================================');
-
+        console.log('✅ BASE DE DATOS: CONEXIÓN EXITOSA');
         conn.release();
     } catch (err) {
-        console.log('================================');
-        console.log('❌ ERROR MYSQL');
-        console.log(err);
-        console.log('================================');
+        console.error('❌ BASE DE DATOS: ERROR DE CONEXIÓN');
+        console.error(err.message);
     }
 })();
+
+/* ======================================================
+   EXPORTAR A EXCEL (LIBERTAD TOTAL)
+====================================================== */
+
+app.get('/api/export/elementos', async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT * FROM elementos");
+        
+        const worksheet = XLSX.utils.json_to_sheet(rows);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Elementos");
+
+        const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+        res.setHeader('Content-Disposition', 'attachment; filename="reporte_elementos.xlsx"');
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.send(buffer);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al exportar elementos' });
+    }
+});
+
+app.get('/api/export/equipos', async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT * FROM equipos");
+        
+        const worksheet = XLSX.utils.json_to_sheet(rows);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Equipos");
+
+        const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+        res.setHeader('Content-Disposition', 'attachment; filename="reporte_equipos.xlsx"');
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.send(buffer);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al exportar equipos' });
+    }
+});
 
 /* ======================================================
    FECHA
