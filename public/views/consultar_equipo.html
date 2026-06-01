@@ -22,12 +22,17 @@
             </div>
             
             <form id="form-busqueda-equipo" class="mt-8">
-                <div class="relative max-w-2xl">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <div class="flex flex-col sm:flex-row gap-3 max-w-3xl">
+                    <div class="relative flex-grow group">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none transition-colors group-focus-within:text-blue-600">
+                            <svg class="w-5 h-5 text-gray-400 group-focus-within:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <input type="text" id="busqueda-equipo" class="busqueda-input-v2" placeholder="Buscar por marca, modelo, placa, usuario, serial...">
                     </div>
-                    <input type="text" id="busqueda-equipo" class="busqueda-input-modern" placeholder="Buscar por marca, modelo, estado, nombre, serial, usuario, correo, placa, ubicacion o AnyDesk...">
-                    <button type="submit" class="busqueda-boton-modern">Buscar Ahora</button>
+                    <button type="submit" class="busqueda-boton-v2">
+                        <span>Buscar Equipo</span>
+                        <svg class="w-5 h-5 ml-2 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                    </button>
                 </div>
             </form>
         </div>
