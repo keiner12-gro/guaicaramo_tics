@@ -438,9 +438,9 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             ]),
 
             modelo: obtenerValor(fila, [
+                'modelo cpu',
                 'modelo',
-                'tipo',
-                'modelo cpu'
+                'tipo'
             ]),
 
             estado: obtenerValor(fila, [
@@ -448,22 +448,22 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             ]),
 
             nombre_equipo: obtenerValor(fila, [
+                'nombre nuevo de equipo',
                 'nombre equipo',
                 'nombre del equipo',
                 'equipo',
-                'descripcion',
-                'descripción',
-                'activo',
                 'hostname',
                 'nombre pc'
             ]),
 
             fecha_compra: obtenerValor(fila, [
                 'fecha compra',
-                'compra'
+                'compra',
+                'año'
             ]),
 
             placa: obtenerValor(fila, [
+                'placa cpu',
                 'placa',
                 'placa tics',
                 'activo'
@@ -487,10 +487,10 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             ]),
 
             numero_serie: obtenerValor(fila, [
+                'serial cpu',
                 'serial',
                 'serie',
                 'numero serie',
-                'n serie',
                 's/n'
             ]),
 
@@ -511,8 +511,8 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             ]),
 
             fecha_proximo_mantenimiento: obtenerValor(fila, [
-                'proximo mantenimiento',
-                'proxima revision'
+                'proxima revision',
+                'proximo mantenimiento'
             ])
         }));
 
