@@ -1,0 +1,17 @@
+{
+  "name": "Guaicaramo SAS | Gestión TICS",
+  "short_name": "Guaicaramo",
+  "description": "Sistema de control interno para gestión de bodega y equipos.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "public/assets/images.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
