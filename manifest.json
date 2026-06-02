@@ -7,9 +7,10 @@
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "orientation": "portrait",
+  "scope": "/",
   "icons": [
     {
-      "src": "public/assets/images.jpg",
+      "src": "assets/images.jpg",
       "sizes": "512x512",
       "type": "image/jpeg"
     }
