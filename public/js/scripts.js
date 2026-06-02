@@ -40,11 +40,9 @@ const fechaExcel = (valor) => {
     if (Number.isFinite(serial) && serial >= 25569 && serial <= 100000) {
         try {
             const fecha = new Date(Date.UTC(1899, 11, 30) + serial * 86400000);
-            return fecha.toISOString().slice(0, 10);
             const year = fecha.getUTCFullYear();
-            if (year < 1980) { // Asumiendo que fechas anteriores a 1980 son consideradas "mal"
-                return "";
-            }
+            if (year < 1980) return ""; // Evita años erróneos como 1905
+            return fecha.toISOString().slice(0, 10);
         } catch (e) {
             return "";
         }
@@ -89,7 +87,7 @@ const mapearEquipo = (fila) => ({
     nombre_equipo: valorFila(fila, ["Nombre del equipo", "Nombre equipo", "Nombre nuevo de equipo", "Equipo", "Nombre PC", "Host", "Hostname"]),
     fecha_compra: fechaExcel(valorFila(fila, ["Fecha de compra", "Fecha compra", "Compra"])),
     placa: valorFila(fila, ["Placa", "Placa CPU", "Placa TICS", "Placa TICS/Activo"]),
-    usuario: valorFila(fila, ["Responsable", "Nombre responsable", "Funcionario", "Nombre", "", "__EMPTY", "__EMPTY_1"]) || valorFila(fila, ["Usuario"]),
+    usuario: valorFila(fila, ["Responsable", "Nombre responsable", "Funcionario", "Nombre", "Nombre usuario", "Usuario", "", "__EMPTY", "__EMPTY_1"]),
     correo: valorFila(fila, ["Correo", "Email", "Correo electronico", "Correo electrónico"]),
     sistema_operativo: valorFila(fila, ["Sistema operativo", "SO", "S.O."]),
     numero_serie: valorFila(fila, ["Serial", "Serial CPU", "Serie", "Numero de serie", "Numero serie", "Número de serie", "S/N"]),
