@@ -252,90 +252,104 @@ const mostrarEquipoActual = () => {
     if (currentEquipoIndex >= allEquipos.length) currentEquipoIndex = allEquipos.length - 1;
 
     const equipo = allEquipos[currentEquipoIndex];
-
     const est = String(equipo.estado || "N/A").toLowerCase();
     const badgeClass = est.includes("nuevo") ? "badge-nuevo" : est.includes("usado") ? "badge-usado" : "badge-manto";
 
-    const equipoCard = document.createElement("div");
-    equipoCard.className = "equipo-card animate__animated animate__fadeInUp w-full max-w-md"; // Added max-w-md for better centering
+    contenedor.innerHTML = `
+        <div class="equipo-detalle-wrapper animate__animated animate__fadeIn">
+            <div class="card-equipo-moderna">
+                <!-- HEADER: Marca, Nombre, Modelo, Estado, Fecha -->
+                <div class="seccion-header">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <span class="etiqueta-pro">Marca / Modelo</span>
+                            <h2 class="text-2xl font-black text-bg-dark">${equipo.marca || "N/A"}</h2>
+                            <p class="text-primary font-bold text-sm">${equipo.modelo || "Sin Modelo"}</p>
+                        </div>
+                        <span class="badge-estado ${badgeClass}">${equipo.estado || "N/A"}</span>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <div class="campo-info">
+                            <span class="etiqueta-pro">Nombre del Equipo</span>
+                            <span class="valor-pro text-lg">${equipo.nombre_equipo || "-"}</span>
+                        </div>
+                        <div class="campo-info text-right">
+                            <span class="etiqueta-pro">Fecha Compra</span>
+                            <span class="valor-pro text-sm">${equipo.fechaCompra || "-"}</span>
+                        </div>
+                    </div>
+                </div>
 
-    equipoCard.innerHTML = `
-        <div class="equipo-card-header">
-            <div class="flex justify-between items-center mb-2">
-                <h3 class="text-xl font-bold text-gray-800">${equipo.marca || "Sin Marca"}</h3>
-                <span class="badge-estado ${badgeClass}">${equipo.estado || "N/A"}</span>
-            </div>
-            <div class="flex justify-between items-center text-sm text-gray-600">
-                <p class="font-medium">${equipo.modelo || "Sin Modelo"}</p>
-                <p><strong>Nombre:</strong> ${equipo.nombre_equipo || "-"}</p>
-            </div>
-            <div class="flex justify-end text-xs text-gray-500 mt-1">
-                <p><strong>Fecha Compra:</strong> ${equipo.fechaCompra || "-"}</p>
-            </div>
-        </div>
+                <!-- ESPECIFICACIONES: Placa, Serial, SO, Ubicación -->
+                <div class="seccion-cuerpo">
+                    <div class="grid-campos">
+                        <div class="campo-info">
+                            <span class="etiqueta-pro">Placa TICS</span>
+                            <span class="valor-pro valor-destacado text-red-600">${equipo.placa || "-"}</span>
+                        </div>
+                        <div class="campo-info">
+                            <span class="etiqueta-pro">Número de Serial</span>
+                            <span class="valor-pro valor-destacado">${equipo.numero_serie || "-"}</span>
+                        </div>
+                        <div class="campo-info">
+                            <span class="etiqueta-pro">Sistema Operativo</span>
+                            <span class="valor-pro">${equipo.sistema_operativo || "-"}</span>
+                        </div>
+                        <div class="campo-info">
+                            <span class="etiqueta-pro">Ubicación / Sede</span>
+                            <span class="valor-pro">${equipo.ubicacion || "-"}</span>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="equipo-card-body">
-            <div class="grid grid-cols-2 gap-y-2 gap-x-4">
-                <div>
-                    <span class="equipo-label">Placa:</span>
-                    <span class="equipo-valor font-mono text-red-500">${equipo.placa || "-"}</span>
+                <!-- USUARIO: Nombre, Correo, Cédula -->
+                <div class="seccion-cuerpo seccion-gris">
+                    <div class="campo-info mb-4">
+                        <span class="etiqueta-pro">Responsable Directo</span>
+                        <span class="valor-pro text-lg">👤 ${equipo.usuario || "Sin Asignar"}</span>
+                    </div>
+                    <div class="grid-campos">
+                        <div class="campo-info">
+                            <span class="etiqueta-pro">Correo Corporativo</span>
+                            <span class="valor-pro text-sm text-blue-600 italic">${equipo.correo || "-"}</span>
+                        </div>
+                        <div class="campo-info">
+                            <span class="etiqueta-pro">Identificación (CC)</span>
+                            <span class="valor-pro text-sm">${equipo.cedula || "N/A"}</span>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <span class="equipo-label">Serial:</span>
-                    <span class="equipo-valor font-mono">${equipo.numero_serie || "-"}</span>
-                </div>
-                <div class="col-span-2">
-                    <span class="equipo-label">Sistema Operativo:</span>
-                    <span class="equipo-valor">${equipo.sistema_operativo || "-"}</span>
-                </div>
-                <div class="col-span-2">
-                    <span class="equipo-label">Ubicación:</span>
-                    <span class="equipo-valor">${equipo.ubicacion || "-"}</span>
-                </div>
-            </div>
-        </div>
 
-        <div class="equipo-card-footer">
-            <div class="grid grid-cols-1 gap-y-2">
-                <div>
-                    <span class="equipo-label">Responsable:</span>
-                    <span class="equipo-valor">${equipo.usuario || "-"}</span>
+                <!-- MANTENIMIENTO: Último y Próximo -->
+                <div class="seccion-cuerpo">
+                    <div class="grid-campos">
+                        <div class="campo-info">
+                            <span class="etiqueta-pro">Último Mantenimiento</span>
+                            <span class="valor-pro">${equipo.fechaUltimoMantenimiento || "-"}</span>
+                        </div>
+                        <div class="campo-info">
+                            <span class="etiqueta-pro">Próximo Mantenimiento</span>
+                            <span class="valor-pro text-red-600 font-bold">${equipo.fechaProximoMantenimiento || "-"}</span>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <span class="equipo-label">Correo:</span>
-                    <span class="equipo-valor text-blue-600 italic">${equipo.correo || "-"}</span>
-                </div>
-                <div>
-                    <span class="equipo-label">AnyDesk:</span>
-                    <span class="equipo-valor text-orange-600">${equipo.anydesk || "-"}</span>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-y-2 mt-4 text-sm">
-                <div>
-                    <span class="equipo-label">Último Manto.:</span>
-                    <span class="equipo-valor">${equipo.fechaUltimoMantenimiento || "-"}</span>
-                </div>
-                <div>
-                    <span class="equipo-label">Próximo Manto.:</span>
-                    <span class="equipo-valor font-bold text-red-600">${equipo.fechaProximoMantenimiento || "-"}</span>
-                </div>
-            </div>
-        </div>
 
-        <div class="equipo-card-actions">
+                <!-- ACCIONES -->
+                <div class="p-6 bg-gray-50 flex justify-between gap-4">
+                    <button onclick="eliminarEquipo(${equipo.id}, '${equipo.marca} ${equipo.modelo}')" class="btn-ficha-delete w-12 h-12 flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
                 <button onclick='abrirModalEquipo(${JSON.stringify(equipo).replace(/'/g, "&apos;")})' class="btn-ficha-edit">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     Editar Equipo
                 </button>
-                <button onclick="eliminarEquipo(${equipo.id}, '${equipo.marca} ${equipo.modelo}')" class="btn-ficha-delete">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button>
+                </div>
             </div>
+        </div>
     `;
-    contenedor.appendChild(equipoCard);
 
     contador.textContent = `Total: ${allEquipos.length} equipos encontrados`;
-    indexDisplay.textContent = `${currentEquipoIndex + 1} de ${allEquipos.length}`;
+    indexDisplay.innerHTML = `<span class="index-pills">${currentEquipoIndex + 1} / ${allEquipos.length}</span>`;
 
     btnPrev.disabled = currentEquipoIndex === 0;
     btnNext.disabled = currentEquipoIndex === allEquipos.length - 1;
