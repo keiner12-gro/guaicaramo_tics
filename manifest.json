@@ -3,11 +3,12 @@
   "short_name": "Guaicaramo",
   "description": "Sistema de control interno para gestión de bodega y equipos.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "orientation": "portrait",
-  "scope": "/",
+  "categories": ["business", "productivity"],
   "icons": [
     {
       "src": "assets/images.jpg",
