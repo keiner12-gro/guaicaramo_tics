@@ -235,16 +235,18 @@ const normalizarFecha = (valor) => {
         return null;
     }
 
-    const texto = String(valor).trim();
+    const texto = String(valor).trim().toLowerCase();
+    if (texto === 'n/a' || texto === 'na' || texto === '') return null;
 
     // 1. Si ya es YYYY-MM-DD
-    if (/^\d{4}-\d{2}-\d{2}$/.test(texto)) {
-        return texto;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(valor).trim())) {
+        return String(valor).trim();
     }
 
     // 2. Si es un serial de Excel (número)
     const serial = Number(texto);
-    if (Number.isFinite(serial) && serial >= 1 && serial <= 100000) {
+    // Se ajusta el umbral a 25569 (01/01/1970) para evitar que años simples (como 2024) se procesen como días
+    if (Number.isFinite(serial) && serial >= 25569 && serial <= 100000) {
         try {
             const fecha = new Date(
                 Date.UTC(1899, 11, 30) + serial * 86400000
@@ -561,8 +563,7 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
 
             fecha_compra: obtenerValor(fila, [
                 'fecha compra',
-                'compra',
-                'año'
+                'compra'
             ]),
 
             placa: obtenerValor(fila, [

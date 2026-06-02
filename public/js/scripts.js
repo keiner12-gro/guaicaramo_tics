@@ -29,14 +29,15 @@ const texto = (valor) => String(valor ?? "").trim();
 
 const fechaExcel = (valor) => {
     const limpio = texto(valor);
-    if (!limpio) return "";
+    if (!limpio || limpio.toLowerCase() === 'n/a') return "";
 
     // 1. Si ya es YYYY-MM-DD
     if (/^\d{4}-\d{2}-\d{2}$/.test(limpio)) return limpio;
 
     // 2. Si es un serial de Excel
     const serial = Number(limpio);
-    if (Number.isFinite(serial) && serial >= 1 && serial <= 100000) {
+    // Evitamos interpretar años (ej. 2024) como seriales de días
+    if (Number.isFinite(serial) && serial >= 25569 && serial <= 100000) {
         try {
             const fecha = new Date(Date.UTC(1899, 11, 30) + serial * 86400000);
             return fecha.toISOString().slice(0, 10);
@@ -275,7 +276,7 @@ const mostrarEquipoActual = () => {
                         </div>
                         <div class="campo-info text-right">
                             <span class="etiqueta-pro">Fecha Compra</span>
-                            <span class="valor-pro text-sm">${equipo.fechaCompra || "-"}</span>
+                            <span class="valor-pro text-sm">${equipo.fechaCompra || "N/A"}</span>
                         </div>
                     </div>
                 </div>
