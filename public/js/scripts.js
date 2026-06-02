@@ -162,7 +162,11 @@ const columnasEquipos = [
     { titulo: "Próx. Manto.", campo: "fechaProximoMantenimiento" }
 ];
 
-const renderizarElementos = (elementos, permitirEliminar = false) => {
+// Global state for single equipment view
+let allEquipos = [];
+let currentEquipoIndex = 0;
+
+const renderizarElementos = (elementos) => {
     if (!elementos || !Array.isArray(elementos)) elementos = []; 
 
     const contenedor = document.getElementById("fichas-elementos");
@@ -223,71 +227,102 @@ const renderizarElementos = (elementos, permitirEliminar = false) => {
     });
 };
 
-const renderizarEquipos = (equipos, permitirEliminar = false) => {
-    if (!equipos || !Array.isArray(equipos)) equipos = []; 
-
-    const contenedor = document.getElementById("fichas-equipos");
+const mostrarEquipoActual = () => {
+    const contenedor = document.getElementById("equipo-detalle-container");
     const contador = document.getElementById("contador-equipos");
-    if (!contenedor) return;
+    const btnPrev = document.getElementById("prev-equipo");
+    const btnNext = document.getElementById("next-equipo");
+    const indexDisplay = document.getElementById("equipo-index-display");
+
+    if (!contenedor || !contador || !btnPrev || !btnNext || !indexDisplay) return;
 
     contenedor.textContent = "";
-    if (contador) contador.textContent = `Total: ${equipos.length} equipos encontrados`;
 
-    if (equipos.length === 0) {
+    if (allEquipos.length === 0) {
         contenedor.innerHTML = `<div class="col-span-full py-20 text-center text-gray-500 font-bold bg-white/50 rounded-2xl">No hay equipos registrados.</div>`;
+        contador.textContent = `Total: 0 equipos encontrados`;
+        indexDisplay.textContent = "";
+        btnPrev.disabled = true;
+        btnNext.disabled = true;
         return;
     }
 
-    equipos.forEach((equipo) => {
-        const est = String(equipo.estado || "N/A").toLowerCase();
-        const badgeClass = est.includes("nuevo") ? "badge-nuevo" : est.includes("usado") ? "badge-usado" : "badge-manto";
-        
-        const ficha = document.createElement("div");
-        ficha.className = "ficha-card animate__animated animate__fadeInUp";
-        
-        ficha.innerHTML = `
-            <div class="ficha-header">
-                <div>
-                    <h3 class="ficha-title">${equipo.marca || "Sin Marca"}</h3>
-                    <p class="ficha-subtitle">${equipo.modelo || "Sin Modelo"}</p>
-                </div>
+    // Ensure currentEquipoIndex is within bounds
+    if (currentEquipoIndex < 0) currentEquipoIndex = 0;
+    if (currentEquipoIndex >= allEquipos.length) currentEquipoIndex = allEquipos.length - 1;
+
+    const equipo = allEquipos[currentEquipoIndex];
+
+    const est = String(equipo.estado || "N/A").toLowerCase();
+    const badgeClass = est.includes("nuevo") ? "badge-nuevo" : est.includes("usado") ? "badge-usado" : "badge-manto";
+
+    const equipoCard = document.createElement("div");
+    equipoCard.className = "equipo-card animate__animated animate__fadeInUp w-full max-w-md"; // Added max-w-md for better centering
+
+    equipoCard.innerHTML = `
+        <div class="equipo-card-header">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-xl font-bold text-gray-800">${equipo.marca || "Sin Marca"}</h3>
                 <span class="badge-estado ${badgeClass}">${equipo.estado || "N/A"}</span>
             </div>
-            <div class="ficha-grid">
-                <div class="ficha-item">
-                    <span class="ficha-label">Nombre Equipo</span>
-                    <span class="ficha-valor font-bold text-blue-600">${equipo.nombre_equipo || "-"}</span>
+            <div class="flex justify-between items-center text-sm text-gray-600">
+                <p class="font-medium">${equipo.modelo || "Sin Modelo"}</p>
+                <p><strong>Nombre:</strong> ${equipo.nombre_equipo || "-"}</p>
+            </div>
+            <div class="flex justify-end text-xs text-gray-500 mt-1">
+                <p><strong>Fecha Compra:</strong> ${equipo.fechaCompra || "-"}</p>
+            </div>
+        </div>
+
+        <div class="equipo-card-body">
+            <div class="grid grid-cols-2 gap-y-2 gap-x-4">
+                <div>
+                    <span class="equipo-label">Placa:</span>
+                    <span class="equipo-valor font-mono text-red-500">${equipo.placa || "-"}</span>
                 </div>
-                <div class="ficha-item">
-                    <span class="ficha-label">Placa TICS</span>
-                    <span class="ficha-valor font-mono text-red-500">${equipo.placa || "-"}</span>
+                <div>
+                    <span class="equipo-label">Serial:</span>
+                    <span class="equipo-valor font-mono">${equipo.numero_serie || "-"}</span>
                 </div>
-                <div class="ficha-item">
-                    <span class="ficha-label">Responsable</span>
-                    <span class="ficha-valor">${equipo.usuario || "-"}</span>
+                <div class="col-span-2">
+                    <span class="equipo-label">Sistema Operativo:</span>
+                    <span class="equipo-valor">${equipo.sistema_operativo || "-"}</span>
                 </div>
-                <div class="ficha-item">
-                    <span class="ficha-label">Ubicación</span>
-                    <span class="ficha-valor">${equipo.ubicacion || "-"}</span>
-                </div>
-                <div class="ficha-item">
-                    <span class="ficha-label">Serial</span>
-                    <span class="ficha-valor font-mono">${equipo.numero_serie || "-"}</span>
-                </div>
-                <div class="ficha-item">
-                    <span class="ficha-label">AnyDesk</span>
-                    <span class="ficha-valor text-orange-600">${equipo.anydesk || "-"}</span>
-                </div>
-                <div class="ficha-item">
-                    <span class="ficha-label">Próx. Manto.</span>
-                    <span class="ficha-valor font-bold text-red-600">${equipo.fechaProximoMantenimiento || "-"}</span>
-                </div>
-                <div class="ficha-item">
-                    <span class="ficha-label">S.O.</span>
-                    <span class="ficha-valor">${equipo.sistema_operativo || "-"}</span>
+                <div class="col-span-2">
+                    <span class="equipo-label">Ubicación:</span>
+                    <span class="equipo-valor">${equipo.ubicacion || "-"}</span>
                 </div>
             </div>
-            <div class="ficha-acciones">
+        </div>
+
+        <div class="equipo-card-footer">
+            <div class="grid grid-cols-1 gap-y-2">
+                <div>
+                    <span class="equipo-label">Responsable:</span>
+                    <span class="equipo-valor">${equipo.usuario || "-"}</span>
+                </div>
+                <div>
+                    <span class="equipo-label">Correo:</span>
+                    <span class="equipo-valor text-blue-600 italic">${equipo.correo || "-"}</span>
+                </div>
+                <div>
+                    <span class="equipo-label">AnyDesk:</span>
+                    <span class="equipo-valor text-orange-600">${equipo.anydesk || "-"}</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-y-2 mt-4 text-sm">
+                <div>
+                    <span class="equipo-label">Último Manto.:</span>
+                    <span class="equipo-valor">${equipo.fechaUltimoMantenimiento || "-"}</span>
+                </div>
+                <div>
+                    <span class="equipo-label">Próximo Manto.:</span>
+                    <span class="equipo-valor font-bold text-red-600">${equipo.fechaProximoMantenimiento || "-"}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="equipo-card-actions">
                 <button onclick='abrirModalEquipo(${JSON.stringify(equipo).replace(/'/g, "&apos;")})' class="btn-ficha-edit">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     Editar Equipo
@@ -296,9 +331,19 @@ const renderizarEquipos = (equipos, permitirEliminar = false) => {
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
             </div>
-        `;
-        contenedor.appendChild(ficha);
-    });
+    `;
+    contenedor.appendChild(equipoCard);
+
+    contador.textContent = `Total: ${allEquipos.length} equipos encontrados`;
+    indexDisplay.textContent = `${currentEquipoIndex + 1} de ${allEquipos.length}`;
+
+    btnPrev.disabled = currentEquipoIndex === 0;
+    btnNext.disabled = currentEquipoIndex === allEquipos.length - 1;
+};
+
+const navegarEquipo = (direccion) => {
+    currentEquipoIndex += direccion;
+    mostrarEquipoActual();
 };
 
 // --- GESTIÓN DE MODALES Y ACTUALIZACIÓN ---
@@ -598,21 +643,21 @@ const inicializarConsulta = async () => {
     }
 };
 
-const inicializarConsultaEquipos = async () => {
+const inicializarConsultaEquipos = async (busqueda = "") => {
     const formulario = document.getElementById("form-busqueda-equipo");
     const entrada = document.getElementById("busqueda-equipo");
-    const contenedor = document.getElementById("fichas-equipos");
+    const contenedor = document.getElementById("equipo-detalle-container");
 
     if (!contenedor) return;
 
-    const equipos = await obtenerEquipos();
-    renderizarEquipos(equipos);
+    allEquipos = await obtenerEquipos(busqueda);
+    currentEquipoIndex = 0; // Reset index on new search
+    mostrarEquipoActual();
 
     if (formulario && entrada) {
         formulario.addEventListener("submit", async (evento) => {
             evento.preventDefault();
-            const filtrados = await obtenerEquipos(entrada.value);
-            renderizarEquipos(filtrados);
+            inicializarConsultaEquipos(entrada.value); // Re-initialize with search
         });
     }
 };
@@ -625,7 +670,7 @@ const eliminarElemento = async (id, nombre) => {
         const respuesta = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
         if (!respuesta.ok) throw new Error("Error al eliminar");
         await alerta("success", "Eliminado", "Elemento eliminado correctamente.");
-        inicializarConsulta();
+        inicializarConsulta(); // Re-render elements
     } catch (error) {
         await alerta("error", "Error", "No se pudo eliminar el elemento.");
     }
@@ -638,8 +683,8 @@ const eliminarEquipo = async (id, nombre) => {
     try {
         const respuesta = await fetch(`${API_EQUIPOS_URL}/${id}`, { method: "DELETE" });
         if (!respuesta.ok) throw new Error("Error al eliminar");
-        await alerta("success", "Eliminado", "Equipo eliminado correctamente.");
-        inicializarConsultaEquipos();
+        await alerta("success", "Eliminado", "Equipo eliminado correctamente."); // Re-render current equipment view
+        inicializarConsultaEquipos(document.getElementById("busqueda-equipo")?.value || "");
     } catch (error) {
         await alerta("error", "Error", "No se pudo eliminar el equipo.");
     }
@@ -652,8 +697,8 @@ const eliminarTodosEquipos = async () => {
     try {
         const respuesta = await fetch(`${API_EQUIPOS_URL}/all`, { method: "DELETE" });
         if (!respuesta.ok) throw new Error("Error al eliminar todos");
-        await alerta("success", "Eliminados", "Todos los equipos han sido eliminados.");
-        inicializarConsultaEquipos();
+        await alerta("success", "Eliminados", "Todos los equipos han sido eliminados."); // Re-render current equipment view
+        inicializarConsultaEquipos(""); // Clear search and re-render
     } catch (error) {
         await alerta("error", "Error", "No se pudieron eliminar los equipos.");
     }
@@ -690,5 +735,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnEliminarTodo = document.getElementById("eliminar-todos-equipos");
     if (btnEliminarTodo) {
         btnEliminarTodo.onclick = eliminarTodosEquipos;
+    }
+
+    const btnPrevEquipo = document.getElementById("prev-equipo");
+    if (btnPrevEquipo) {
+        btnPrevEquipo.onclick = () => navegarEquipo(-1);
+    }
+
+    const btnNextEquipo = document.getElementById("next-equipo");
+    if (btnNextEquipo) {
+        btnNextEquipo.onclick = () => navegarEquipo(1);
     }
 });
