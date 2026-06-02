@@ -31,7 +31,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 2rem 1rem;
 }
 
@@ -185,9 +185,161 @@ input:focus {
 /* Tables */
 .tabla-contenedor-modern {
     border-radius: 1rem;
-    overflow: hidden;
+    overflow-x: auto; /* Permite desplazamiento horizontal */
     border: 1px solid #e2e8f0;
     background: white;
+    width: 100%;
+}
+
+/* Fichas / Cards Layout */
+.fichas-contenedor {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+    perspective: 1000px;
+}
+
+.ficha-card {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid #f1f5f9;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.ficha-card:hover {
+    transform: translateY(-10px) rotateX(2deg);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: var(--primary);
+}
+
+.ficha-header {
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.ficha-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--bg-dark);
+}
+
+.ficha-subtitle {
+    font-size: 0.875rem;
+    color: var(--primary);
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+.ficha-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-grow: 1;
+}
+
+.ficha-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.ficha-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+.ficha-valor {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.ficha-acciones {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: auto;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.btn-ficha-edit {
+    flex: 2;
+    background: var(--primary);
+    color: white;
+    padding: 0.6rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+}
+
+.btn-ficha-delete {
+    flex: 1;
+    background: #fee2e2;
+    color: var(--danger);
+    padding: 0.6rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.btn-ficha-edit:hover { background: var(--primary-hover); transform: scale(1.02); }
+.btn-ficha-delete:hover { background: #fecaca; transform: scale(1.02); }
+
+/* Modal Edición */
+.modal-edicion {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-edicion.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: white;
+    width: 95%;
+    max-width: 800px;
+    max-height: 90vh;
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    overflow-y: auto;
+    transform: scale(0.9);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-edicion.active .modal-content {
+    transform: scale(1);
 }
 
 .tabla-modern {

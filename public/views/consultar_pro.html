@@ -45,25 +45,59 @@
             </div>
         </div>
 
-        <div class="tabla-contenedor-modern animate__animated animate__fadeInUp shadow-2xl">
-            <table class="tabla-modern">
-                <thead>
-                    <tr class="bg-slate-50">
-                        <th class="w-20">Cantidad</th>
-                        <th>Modelo</th>
-                        <th>Marca</th>
-                        <th>Serial</th>
-                        <th>Placa</th>
-                        <th>Descripción</th>
-                        <th>Ingreso</th>
-                        <th>Baja</th>
-                    </tr>
-                </thead>
-                <tbody id="elementos-body" class="bg-white">
-                    <!-- Dinámico -->
-                </tbody>
-            </table>
+        <div id="fichas-elementos" class="fichas-contenedor animate__animated animate__fadeInUp"></div>
+    </div>
+
+    <!-- Modal de Edición -->
+    <div id="modal-edicion" class="modal-edicion">
+        <div class="modal-content shadow-2xl">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-2xl font-extrabold text-bg-dark">Editar Elemento</h2>
+                <button onclick="cerrarModal()" class="text-text-muted hover:text-danger transition-colors">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="form-edicion" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <input type="hidden" id="edit-id">
+                <div>
+                    <label>Cantidad</label>
+                    <input type="text" id="edit-cantidad" required>
+                </div>
+                <div>
+                    <label>Modelo</label>
+                    <input type="text" id="edit-modelo" required>
+                </div>
+                <div>
+                    <label>Marca</label>
+                    <input type="text" id="edit-marca" required>
+                </div>
+                <div>
+                    <label>Serial</label>
+                    <input type="text" id="edit-serial">
+                </div>
+                <div>
+                    <label>Placa</label>
+                    <input type="text" id="edit-placa">
+                </div>
+                <div>
+                    <label>Fecha Ingreso</label>
+                    <input type="date" id="edit-fechaIngreso">
+                </div>
+                <div>
+                    <label>Fecha Baja</label>
+                    <input type="date" id="edit-fechaBaja">
+                </div>
+                <div class="md:col-span-2">
+                    <label>Descripción</label>
+                    <textarea id="edit-descripcion" rows="3"></textarea>
+                </div>
+                <div class="md:col-span-2 flex justify-end gap-4 mt-4">
+                    <button type="button" onclick="cerrarModal()" class="px-6 py-3 border-2 border-gray-200 rounded-xl font-bold hover:bg-gray-50 transition-all">Cancelar</button>
+                    <button type="submit" class="px-8 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all">Guardar Cambios</button>
+                </div>
+            </form>
         </div>
+    </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

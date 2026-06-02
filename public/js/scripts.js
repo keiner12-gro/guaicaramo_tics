@@ -163,149 +163,266 @@ const columnasEquipos = [
 ];
 
 const renderizarElementos = (elementos, permitirEliminar = false) => {
-    // 🛡️ BLINDAJE: Si no es un arreglo válido, lo volvemos un arreglo vacío
-    if (!elementos || !Array.isArray(elementos)) {
-        console.warn("renderizarElementos recibió datos inválidos:", elementos);
-        elementos = []; 
-    }
+    if (!elementos || !Array.isArray(elementos)) elementos = []; 
 
-    const cuerpoTabla = document.getElementById("elementos-body");
-    if (!cuerpoTabla) return;
+    const contenedor = document.getElementById("fichas-elementos");
+    if (!contenedor) return;
 
-    cuerpoTabla.textContent = "";
+    contenedor.textContent = "";
 
     if (elementos.length === 0) {
-        const fila = document.createElement("tr");
-        const celda = document.createElement("td");
-        celda.colSpan = permitirEliminar ? 9 : 8;
-        celda.className = "px-6 py-4 text-center text-body";
-        celda.textContent = "No hay elementos registrados.";
-        fila.appendChild(celda);
-        cuerpoTabla.appendChild(fila);
+        contenedor.innerHTML = `<div class="col-span-full py-20 text-center text-gray-500 font-bold bg-white/50 rounded-2xl">No hay elementos registrados.</div>`;
         return;
     }
 
     elementos.forEach((elemento) => {
-        const fila = document.createElement("tr");
-        fila.className = "border-b border-default hover:bg-neutral-secondary-soft";
-
-        const campos = ["cantidad", "modelo", "marca", "serial", "placa", "descripcion", "fechaIngreso", "fechaBaja"];
-
-        campos.forEach((campo) => {
-            const celda = document.createElement("td");
-            celda.className = "px-6 py-4";
-            celda.textContent = elemento[campo] || "-";
-            fila.appendChild(celda);
-        });
-
-        if (permitirEliminar) {
-            const celdaAccion = document.createElement("td");
-            celdaAccion.className = "px-6 py-4";
-            const boton = document.createElement("button");
-            boton.type = "button";
-            boton.className = "boton-eliminar";
-            boton.textContent = "Eliminar";
-            boton.onclick = () => eliminarElemento(elemento.id, elemento.modelo || elemento.descripcion);
-            celdaAccion.appendChild(boton);
-            fila.appendChild(celdaAccion);
-        }
-
-        cuerpoTabla.appendChild(fila);
+        const ficha = document.createElement("div");
+        ficha.className = "ficha-card animate__animated animate__fadeInUp";
+        
+        ficha.innerHTML = `
+            <div class="ficha-header">
+                <div>
+                    <h3 class="ficha-title">${elemento.marca || "Sin Marca"}</h3>
+                    <p class="ficha-subtitle">${elemento.modelo || "Sin Modelo"}</p>
+                </div>
+                <span class="px-3 py-1 bg-primary/10 text-primary rounded-lg font-bold text-xs">CANT: ${elemento.cantidad || 0}</span>
+            </div>
+            <div class="ficha-grid">
+                <div class="ficha-item">
+                    <span class="ficha-label">Serial</span>
+                    <span class="ficha-valor">${elemento.serial || "-"}</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">Placa</span>
+                    <span class="ficha-valor">${elemento.placa || "-"}</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">Ingreso</span>
+                    <span class="ficha-valor">${elemento.fechaIngreso || "-"}</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">Baja</span>
+                    <span class="ficha-valor">${elemento.fechaBaja || "-"}</span>
+                </div>
+                <div class="ficha-item col-span-2">
+                    <span class="ficha-label">Descripción</span>
+                    <span class="ficha-valor italic text-gray-600">${elemento.descripcion || "-"}</span>
+                </div>
+            </div>
+            <div class="ficha-acciones">
+                <button onclick='abrirModal(${JSON.stringify(elemento).replace(/'/g, "&apos;")})' class="btn-ficha-edit">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Editar
+                </button>
+                <button onclick="eliminarElemento(${elemento.id}, '${elemento.modelo || elemento.descripcion}')" class="btn-ficha-delete">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            </div>
+        `;
+        contenedor.appendChild(ficha);
     });
 };
 
 const renderizarEquipos = (equipos, permitirEliminar = false) => {
-    // 🛡️ BLINDAJE: Si no es un arreglo válido, lo volvemos un arreglo vacío
-    if (!equipos || !Array.isArray(equipos)) {
-        console.warn("renderizarEquipos recibió datos inválidos:", equipos);
-        equipos = []; 
-    }
+    if (!equipos || !Array.isArray(equipos)) equipos = []; 
 
-    const cuerpoTabla = document.getElementById("equipos-body") || document.getElementById("equipos-eliminar-body");
+    const contenedor = document.getElementById("fichas-equipos");
     const contador = document.getElementById("contador-equipos");
-    if (!cuerpoTabla) return;
+    if (!contenedor) return;
 
-    cuerpoTabla.textContent = "";
+    contenedor.textContent = "";
     if (contador) contador.textContent = `Total: ${equipos.length} equipos encontrados`;
 
     if (equipos.length === 0) {
-        const fila = document.createElement("tr");
-        const celda = document.createElement("td");
-        celda.colSpan = permitirEliminar ? 7 : 14;
-        celda.className = "px-6 py-10 text-center text-gray-500 font-medium bg-gray-50";
-        celda.textContent = "No hay equipos registrados.";
-        fila.appendChild(celda);
-        cuerpoTabla.appendChild(fila);
+        contenedor.innerHTML = `<div class="col-span-full py-20 text-center text-gray-500 font-bold bg-white/50 rounded-2xl">No hay equipos registrados.</div>`;
         return;
     }
 
     equipos.forEach((equipo) => {
-        const fila = document.createElement("tr");
-        fila.className = "hover:bg-blue-50/50 transition-colors";
-
-        if (permitirEliminar) {
-            const campos = [
-                { campo: "marca", extra: "font-bold text-gray-900" },
-                { campo: "modelo", extra: "text-gray-700" },
-                { campo: "nombre_equipo", extra: "font-semibold text-blue-600" },
-                { campo: "numero_serie", extra: "font-mono text-gray-600" },
-                { campo: "usuario", extra: "font-medium text-gray-800" },
-                { campo: "placa", extra: "font-bold text-red-500" }
-            ];
-            
-            campos.forEach(({ campo, extra }) => {
-                const celda = document.createElement("td");
-                celda.className = `px-8 py-5 border-b border-gray-100 ${extra}`;
-                celda.textContent = equipo[campo] || "-";
-                fila.appendChild(celda);
-            });
-            
-            const celdaAccion = document.createElement("td");
-            celdaAccion.className = "px-8 py-5 border-b border-gray-100 text-center";
-            const boton = document.createElement("button");
-            boton.type = "button";
-            boton.className = "boton-eliminar scale-110 hover:scale-125 transition-transform duration-200";
-            boton.textContent = "Eliminar";
-            boton.onclick = () => eliminarEquipo(equipo.id, `${equipo.marca} ${equipo.modelo}`);
-            celdaAccion.appendChild(boton);
-            fila.appendChild(celdaAccion);
-        } else {
-            const crearCelda = (contenido, extraClass = "") => {
-                const celda = document.createElement("td");
-                celda.className = `px-6 py-4 border-b border-gray-100 ${extraClass}`;
-                if (contenido instanceof Node) celda.appendChild(contenido);
-                else celda.textContent = contenido || "-";
-                return celda;
-            };
-
-            fila.appendChild(crearCelda(equipo.marca, "font-semibold text-gray-900"));
-            fila.appendChild(crearCelda(equipo.modelo));
-
-            const spanEstado = document.createElement("span");
-            const est = String(equipo.estado).toLowerCase();
-            spanEstado.className = "badge-estado " + (
-                est.includes("nuevo") ? "badge-nuevo" :
-                est.includes("usado") ? "badge-usado" :
-                est.includes("manto") || est.includes("repar") ? "badge-manto" : "badge-default"
-            );
-            spanEstado.textContent = equipo.estado || "N/A";
-            fila.appendChild(crearCelda(spanEstado));
-
-            fila.appendChild(crearCelda(equipo.nombre_equipo));
-            fila.appendChild(crearCelda(equipo.fechaCompra));
-            fila.appendChild(crearCelda(equipo.placa, "font-mono font-bold text-blue-700"));
-            fila.appendChild(crearCelda(equipo.sistema_operativo));
-            fila.appendChild(crearCelda(equipo.ubicacion));
-            fila.appendChild(crearCelda(equipo.usuario, "font-semibold text-gray-800"));
-            fila.appendChild(crearCelda(equipo.numero_serie));
-            fila.appendChild(crearCelda(equipo.anydesk));
-            fila.appendChild(crearCelda(equipo.correo, "text-blue-600 italic"));
-            fila.appendChild(crearCelda(equipo.fechaUltimoMantenimiento));
-            fila.appendChild(crearCelda(equipo.fechaProximoMantenimiento, "text-red-600 font-bold"));
-        }
-
-        cuerpoTabla.appendChild(fila);
+        const est = String(equipo.estado || "N/A").toLowerCase();
+        const badgeClass = est.includes("nuevo") ? "badge-nuevo" : est.includes("usado") ? "badge-usado" : "badge-manto";
+        
+        const ficha = document.createElement("div");
+        ficha.className = "ficha-card animate__animated animate__fadeInUp";
+        
+        ficha.innerHTML = `
+            <div class="ficha-header">
+                <div>
+                    <h3 class="ficha-title">${equipo.marca || "Sin Marca"}</h3>
+                    <p class="ficha-subtitle">${equipo.modelo || "Sin Modelo"}</p>
+                </div>
+                <span class="badge-estado ${badgeClass}">${equipo.estado || "N/A"}</span>
+            </div>
+            <div class="ficha-grid">
+                <div class="ficha-item">
+                    <span class="ficha-label">Nombre Equipo</span>
+                    <span class="ficha-valor font-bold text-blue-600">${equipo.nombre_equipo || "-"}</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">Placa TICS</span>
+                    <span class="ficha-valor font-mono text-red-500">${equipo.placa || "-"}</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">Responsable</span>
+                    <span class="ficha-valor">${equipo.usuario || "-"}</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">Ubicación</span>
+                    <span class="ficha-valor">${equipo.ubicacion || "-"}</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">Serial</span>
+                    <span class="ficha-valor font-mono">${equipo.numero_serie || "-"}</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">AnyDesk</span>
+                    <span class="ficha-valor text-orange-600">${equipo.anydesk || "-"}</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">Próx. Manto.</span>
+                    <span class="ficha-valor font-bold text-red-600">${equipo.fechaProximoMantenimiento || "-"}</span>
+                </div>
+                <div class="ficha-item">
+                    <span class="ficha-label">S.O.</span>
+                    <span class="ficha-valor">${equipo.sistema_operativo || "-"}</span>
+                </div>
+            </div>
+            <div class="ficha-acciones">
+                <button onclick='abrirModalEquipo(${JSON.stringify(equipo).replace(/'/g, "&apos;")})' class="btn-ficha-edit">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Editar Equipo
+                </button>
+                <button onclick="eliminarEquipo(${equipo.id}, '${equipo.marca} ${equipo.modelo}')" class="btn-ficha-delete">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            </div>
+        `;
+        contenedor.appendChild(ficha);
     });
+};
+
+// --- GESTIÓN DE MODALES Y ACTUALIZACIÓN ---
+
+const abrirModal = (elemento) => {
+    const modal = document.getElementById("modal-edicion");
+    if (!modal) return;
+    
+    document.getElementById("edit-id").value = elemento.id;
+    document.getElementById("edit-cantidad").value = elemento.cantidad;
+    document.getElementById("edit-modelo").value = elemento.modelo;
+    document.getElementById("edit-marca").value = elemento.marca;
+    document.getElementById("edit-serial").value = elemento.serial;
+    document.getElementById("edit-placa").value = elemento.placa;
+    document.getElementById("edit-fechaIngreso").value = elemento.fechaIngreso;
+    document.getElementById("edit-fechaBaja").value = elemento.fechaBaja;
+    document.getElementById("edit-descripcion").value = elemento.descripcion;
+    
+    modal.classList.add("active");
+};
+
+const cerrarModal = () => {
+    document.getElementById("modal-edicion")?.classList.remove("active");
+};
+
+const abrirModalEquipo = (equipo) => {
+    const modal = document.getElementById("modal-edicion-equipo");
+    if (!modal) return;
+    
+    document.getElementById("edit-equipo-id").value = equipo.id;
+    document.getElementById("edit-equipo-marca").value = equipo.marca;
+    document.getElementById("edit-equipo-modelo").value = equipo.modelo;
+    document.getElementById("edit-equipo-estado").value = equipo.estado;
+    document.getElementById("edit-equipo-nombre").value = equipo.nombre_equipo;
+    document.getElementById("edit-equipo-placa").value = equipo.placa;
+    document.getElementById("edit-equipo-so").value = equipo.sistema_operativo;
+    document.getElementById("edit-equipo-ubicacion").value = equipo.ubicacion;
+    document.getElementById("edit-equipo-usuario").value = equipo.usuario;
+    document.getElementById("edit-equipo-serial").value = equipo.numero_serie;
+    document.getElementById("edit-equipo-anydesk").value = equipo.anydesk;
+    document.getElementById("edit-equipo-correo").value = equipo.correo;
+    document.getElementById("edit-equipo-compra").value = equipo.fechaCompra;
+    document.getElementById("edit-equipo-manto-ant").value = equipo.fechaUltimoMantenimiento;
+    document.getElementById("edit-equipo-manto-prox").value = equipo.fechaProximoMantenimiento;
+    
+    modal.classList.add("active");
+};
+
+const cerrarModalEquipo = () => {
+    document.getElementById("modal-edicion-equipo")?.classList.remove("active");
+};
+
+// --- LOGICA DE ACTUALIZACIÓN ---
+
+const inicializarEdicion = () => {
+    const formEle = document.getElementById("form-edicion");
+    if (formEle) {
+        formEle.onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById("edit-id").value;
+            const data = {
+                cantidad: document.getElementById("edit-cantidad").value,
+                modelo: document.getElementById("edit-modelo").value,
+                marca: document.getElementById("edit-marca").value,
+                serial: document.getElementById("edit-serial").value,
+                placa: document.getElementById("edit-placa").value,
+                fechaIngreso: document.getElementById("edit-fechaIngreso").value,
+                fechaBaja: document.getElementById("edit-fechaBaja").value,
+                descripcion: document.getElementById("edit-descripcion").value
+            };
+            
+            try {
+                const res = await fetch(`${API_URL}/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                if (!res.ok) throw new Error("Error al actualizar");
+                cerrarModal();
+                await alerta("success", "Actualizado", "Elemento actualizado correctamente.");
+                inicializarConsulta();
+            } catch (err) {
+                alerta("error", "Error", err.message);
+            }
+        };
+    }
+
+    const formEqu = document.getElementById("form-edicion-equipo");
+    if (formEqu) {
+        formEqu.onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById("edit-equipo-id").value;
+            const data = {
+                marca: document.getElementById("edit-equipo-marca").value,
+                modelo: document.getElementById("edit-equipo-modelo").value,
+                estado: document.getElementById("edit-equipo-estado").value,
+                nombre_equipo: document.getElementById("edit-equipo-nombre").value,
+                placa: document.getElementById("edit-equipo-placa").value,
+                sistema_operativo: document.getElementById("edit-equipo-so").value,
+                ubicacion: document.getElementById("edit-equipo-ubicacion").value,
+                usuario: document.getElementById("edit-equipo-usuario").value,
+                numero_serie: document.getElementById("edit-equipo-serial").value,
+                anydesk: document.getElementById("edit-equipo-anydesk").value,
+                correo: document.getElementById("edit-equipo-correo").value,
+                fecha_compra: document.getElementById("edit-equipo-compra").value,
+                fecha_ultimo_mantenimiento: document.getElementById("edit-equipo-manto-ant").value,
+                fecha_proximo_mantenimiento: document.getElementById("edit-equipo-manto-prox").value
+            };
+            
+            try {
+                const res = await fetch(`${API_EQUIPOS_URL}/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                if (!res.ok) throw new Error("Error al actualizar");
+                cerrarModalEquipo();
+                await alerta("success", "Actualizado", "Equipo actualizado correctamente.");
+                inicializarConsultaEquipos();
+            } catch (err) {
+                alerta("error", "Error", err.message);
+            }
+        };
+    }
 };
 
 const registrarElemento = () => {
@@ -465,19 +582,18 @@ const inicializarExcelImport = () => {
 const inicializarConsulta = async () => {
     const formulario = document.getElementById("form");
     const entrada = document.getElementById("dato1");
-    const esVistaEliminar = Boolean(document.getElementById("tabla-elementos-eliminar"));
-    const esVistaConsulta = Boolean(document.getElementById("tabla-elementos"));
+    const contenedor = document.getElementById("fichas-elementos");
 
-    if (!esVistaConsulta && !esVistaEliminar) return;
+    if (!contenedor) return;
 
     const elementos = await obtenerElementos();
-    renderizarElementos(elementos, esVistaEliminar);
+    renderizarElementos(elementos);
 
     if (formulario && entrada) {
         formulario.addEventListener("submit", async (evento) => {
             evento.preventDefault();
             const filtrados = await obtenerElementos(entrada.value);
-            renderizarElementos(filtrados, esVistaEliminar);
+            renderizarElementos(filtrados);
         });
     }
 };
@@ -485,19 +601,18 @@ const inicializarConsulta = async () => {
 const inicializarConsultaEquipos = async () => {
     const formulario = document.getElementById("form-busqueda-equipo");
     const entrada = document.getElementById("busqueda-equipo");
-    const esVistaEliminar = Boolean(document.getElementById("tabla-equipos-eliminar"));
-    const esVistaConsulta = Boolean(document.getElementById("equipos-body"));
+    const contenedor = document.getElementById("fichas-equipos");
 
-    if (!esVistaConsulta && !esVistaEliminar) return;
+    if (!contenedor) return;
 
     const equipos = await obtenerEquipos();
-    renderizarEquipos(equipos, esVistaEliminar);
+    renderizarEquipos(equipos);
 
     if (formulario && entrada) {
         formulario.addEventListener("submit", async (evento) => {
             evento.preventDefault();
             const filtrados = await obtenerEquipos(entrada.value);
-            renderizarEquipos(filtrados, esVistaEliminar);
+            renderizarEquipos(filtrados);
         });
     }
 };
@@ -510,8 +625,7 @@ const eliminarElemento = async (id, nombre) => {
         const respuesta = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
         if (!respuesta.ok) throw new Error("Error al eliminar");
         await alerta("success", "Eliminado", "Elemento eliminado correctamente.");
-        const elementos = await obtenerElementos();
-        renderizarElementos(elementos, true);
+        inicializarConsulta();
     } catch (error) {
         await alerta("error", "Error", "No se pudo eliminar el elemento.");
     }
@@ -525,8 +639,7 @@ const eliminarEquipo = async (id, nombre) => {
         const respuesta = await fetch(`${API_EQUIPOS_URL}/${id}`, { method: "DELETE" });
         if (!respuesta.ok) throw new Error("Error al eliminar");
         await alerta("success", "Eliminado", "Equipo eliminado correctamente.");
-        const equipos = await obtenerEquipos();
-        renderizarEquipos(equipos, true);
+        inicializarConsultaEquipos();
     } catch (error) {
         await alerta("error", "Error", "No se pudo eliminar el equipo.");
     }
@@ -540,7 +653,7 @@ const eliminarTodosEquipos = async () => {
         const respuesta = await fetch(`${API_EQUIPOS_URL}/all`, { method: "DELETE" });
         if (!respuesta.ok) throw new Error("Error al eliminar todos");
         await alerta("success", "Eliminados", "Todos los equipos han sido eliminados.");
-        renderizarEquipos([], true);
+        inicializarConsultaEquipos();
     } catch (error) {
         await alerta("error", "Error", "No se pudieron eliminar los equipos.");
     }
@@ -572,6 +685,7 @@ document.addEventListener("DOMContentLoaded", () => {
     inicializarConsultaEquipos();
     inicializarExcelImport();
     iniciarExportaciones();
+    inicializarEdicion();
 
     const btnEliminarTodo = document.getElementById("eliminar-todos-equipos");
     if (btnEliminarTodo) {

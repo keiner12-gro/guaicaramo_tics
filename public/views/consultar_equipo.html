@@ -48,31 +48,88 @@
             </div>
         </div>
 
-        <div class="tabla-contenedor-modern animate__animated animate__fadeInUp shadow-2xl">
-            <table class="tabla-modern">
-                <thead>
-                    <tr>
-                        <th class="bg-slate-50">Marca</th>
-                        <th>Modelo</th>
-                        <th>Estado</th>
-                        <th>Nombre equipo</th>
-                        <th>Compra</th>
-                        <th>Placa TICS</th>
-                        <th>S.O.</th>
-                        <th>Ubicación</th>
-                        <th>Responsable</th>
-                        <th>Serial</th>
-                        <th>AnyDesk</th>
-                        <th>E-mail</th>
-                        <th>Manto. Ant.</th>
-                        <th class="text-danger">Próx. Manto.</th>
-                    </tr>
-                </thead>
-                <tbody id="equipos-body" class="bg-white">
-                    <!-- Dinámico -->
-                </tbody>
-            </table>
+        <div id="fichas-equipos" class="fichas-contenedor animate__animated animate__fadeInUp"></div>
+    </div>
+
+    <!-- Modal de Edición Equipo -->
+    <div id="modal-edicion-equipo" class="modal-edicion">
+        <div class="modal-content shadow-2xl">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-2xl font-extrabold text-bg-dark">Editar Equipo</h2>
+                <button onclick="cerrarModalEquipo()" class="text-text-muted hover:text-danger transition-colors">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="form-edicion-equipo" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <input type="hidden" id="edit-equipo-id">
+                <div>
+                    <label>Marca</label>
+                    <input type="text" id="edit-equipo-marca" required>
+                </div>
+                <div>
+                    <label>Modelo</label>
+                    <input type="text" id="edit-equipo-modelo" required>
+                </div>
+                <div>
+                    <label>Estado</label>
+                    <select id="edit-equipo-estado">
+                        <option value="Nuevo">Nuevo</option>
+                        <option value="Usado">Usado</option>
+                        <option value="Mantenimiento">Mantenimiento</option>
+                        <option value="Reparación">Reparación</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Nombre Equipo</label>
+                    <input type="text" id="edit-equipo-nombre">
+                </div>
+                <div>
+                    <label>Placa TICS</label>
+                    <input type="text" id="edit-equipo-placa">
+                </div>
+                <div>
+                    <label>S.O.</label>
+                    <input type="text" id="edit-equipo-so">
+                </div>
+                <div>
+                    <label>Ubicación</label>
+                    <input type="text" id="edit-equipo-ubicacion">
+                </div>
+                <div>
+                    <label>Responsable</label>
+                    <input type="text" id="edit-equipo-usuario">
+                </div>
+                <div>
+                    <label>Serial</label>
+                    <input type="text" id="edit-equipo-serial">
+                </div>
+                <div>
+                    <label>AnyDesk</label>
+                    <input type="text" id="edit-equipo-anydesk">
+                </div>
+                <div>
+                    <label>E-mail</label>
+                    <input type="email" id="edit-equipo-correo">
+                </div>
+                <div>
+                    <label>Fecha Compra</label>
+                    <input type="date" id="edit-equipo-compra">
+                </div>
+                <div>
+                    <label>Manto. Ant.</label>
+                    <input type="date" id="edit-equipo-manto-ant">
+                </div>
+                <div>
+                    <label>Próx. Manto.</label>
+                    <input type="date" id="edit-equipo-manto-prox">
+                </div>
+                <div class="md:col-span-2 flex justify-end gap-4 mt-4">
+                    <button type="button" onclick="cerrarModalEquipo()" class="px-6 py-3 border-2 border-gray-200 rounded-xl font-bold hover:bg-gray-50 transition-all">Cancelar</button>
+                    <button type="submit" class="px-8 py-3 bg-secondary text-white rounded-xl font-bold shadow-lg shadow-secondary/20 hover:scale-105 transition-all">Guardar Cambios</button>
+                </div>
+            </form>
         </div>
+    </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

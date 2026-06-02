@@ -355,6 +355,19 @@ app.delete('/api/elementos/:id', async (req, res) => {
     }
 });
 
+app.put('/api/elementos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { cantidad, modelo, descripcion, marca, serial, placa, fechaIngreso, fechaBaja } = req.body;
+        const query = `UPDATE elementos SET cantidad = ?, modelo = ?, descripcion = ?, marca = ?, serial = ?, placa = ?, fecha_ingreso = ?, fecha_baja = ? WHERE id = ?`;
+        await pool.query(query, [cantidad, modelo, descripcion, marca, serial, placa, fechaIngreso || null, fechaBaja || null, id]);
+        res.json({ message: 'Elemento actualizado con éxito' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 /* ======================================================
    OBTENER EQUIPOS
 ====================================================== */
@@ -722,6 +735,34 @@ app.delete('/api/equipos/:id', async (req, res) => {
         res.status(500).json({
             error: error.message
         });
+    }
+});
+
+app.put('/api/equipos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { 
+            marca, modelo, estado, nombre_equipo, fecha_compra, placa,
+            usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk,
+            fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento 
+        } = req.body;
+
+        const query = `UPDATE equipos SET 
+            marca = ?, modelo = ?, estado = ?, nombre_equipo = ?, fecha_compra = ?, placa = ?, 
+            usuario = ?, correo = ?, sistema_operativo = ?, numero_serie = ?, ubicacion = ?, 
+            anydesk = ?, fecha_ultimo_mantenimiento = ?, fecha_proximo_mantenimiento = ? 
+            WHERE id = ?`;
+
+        await pool.query(query, [
+            marca, modelo, estado, nombre_equipo, normalizarFecha(fecha_compra), placa,
+            usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk,
+            normalizarFecha(fecha_ultimo_mantenimiento), normalizarFecha(fecha_proximo_mantenimiento), id
+        ]);
+
+        res.json({ message: 'Equipo actualizado con éxito' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
     }
 });
 
