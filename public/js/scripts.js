@@ -41,6 +41,10 @@ const fechaExcel = (valor) => {
         try {
             const fecha = new Date(Date.UTC(1899, 11, 30) + serial * 86400000);
             return fecha.toISOString().slice(0, 10);
+            const year = fecha.getUTCFullYear();
+            if (year < 1980) { // Asumiendo que fechas anteriores a 1980 son consideradas "mal"
+                return "";
+            }
         } catch (e) {
             return "";
         }
@@ -53,6 +57,10 @@ const fechaExcel = (valor) => {
     const d = new Date(limpio);
     if (!isNaN(d.getTime())) {
         try {
+            const year = d.getFullYear();
+            if (year < 1980) { // Asumiendo que fechas anteriores a 1980 son consideradas "mal"
+                return "";
+            }
             return d.toISOString().slice(0, 10);
         } catch (e) {
             return "";
@@ -728,15 +736,13 @@ const iniciarExportaciones = () => {
 
     if (btnExcelEle) {
         btnExcelEle.onclick = () => {
-            const search = document.getElementById("dato1")?.value || "";
-            window.location.href = `/api/export/elementos?search=${encodeURIComponent(search)}`;
+            window.location.href = `/api/export/elementos`;
         };
     }
 
     if (btnExcelEqu) {
         btnExcelEqu.onclick = () => {
-            const search = document.getElementById("busqueda-equipo")?.value || "";
-            window.location.href = `/api/export/equipos?search=${encodeURIComponent(search)}`;
+            window.location.href = `/api/export/equipos`;
         };
     }
 };
