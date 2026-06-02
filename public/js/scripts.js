@@ -552,13 +552,15 @@ const iniciarExportaciones = () => {
 
     if (btnExcelEle) {
         btnExcelEle.onclick = () => {
-            window.location.href = '/api/export/elementos';
+            const search = document.getElementById("dato1")?.value || "";
+            window.location.href = `/api/export/elementos?search=${encodeURIComponent(search)}`;
         };
     }
 
     if (btnExcelEqu) {
         btnExcelEqu.onclick = () => {
-            window.location.href = '/api/export/equipos';
+            const search = document.getElementById("busqueda-equipo")?.value || "";
+            window.location.href = `/api/export/equipos?search=${encodeURIComponent(search)}`;
         };
     }
 };

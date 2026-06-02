@@ -6,6 +6,7 @@ const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
 const XLSX = require('xlsx');
+const ExcelJS = require('exceljs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -95,22 +96,76 @@ const pool = mysql.createPool({
 })();
 
 /* ======================================================
-   EXPORTAR A EXCEL (LIBERTAD TOTAL)
+   EXPORTAR A EXCEL (ESTILIZADO Y FILTRADO)
 ====================================================== */
+
+const aplicarEstilosExcel = (worksheet, title) => {
+    // Estilo para el encabezado
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4F81BD' }
+    };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    // Bordes para todas las celdas con datos
+    worksheet.eachRow((row, rowNumber) => {
+        row.eachCell((cell) => {
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
+            };
+        });
+    });
+
+    // Autoajustar ancho de columnas
+    worksheet.columns.forEach(column => {
+        let maxColumnLength = 0;
+        column.eachCell({ includeEmpty: true }, cell => {
+            const columnLength = cell.value ? cell.value.toString().length : 10;
+            if (columnLength > maxColumnLength) {
+                maxColumnLength = columnLength;
+            }
+        });
+        column.width = maxColumnLength < 12 ? 12 : maxColumnLength + 2;
+    });
+};
 
 app.get('/api/export/elementos', async (req, res) => {
     try {
-        const [rows] = await pool.query("SELECT * FROM elementos");
+        const { search } = req.query;
+        let query = "SELECT cantidad, modelo, marca, serial, placa, descripcion, DATE_FORMAT(fecha_ingreso, '%Y-%m-%d') AS fecha_ingreso, DATE_FORMAT(fecha_baja, '%Y-%m-%d') AS fecha_baja FROM elementos";
+        let params = [];
+
+        if (search) {
+            query += ` WHERE descripcion LIKE ? OR marca LIKE ? OR serial LIKE ? OR placa LIKE ? OR modelo LIKE ?`;
+            const searchVal = `%${search}%`;
+            params = [searchVal, searchVal, searchVal, searchVal, searchVal];
+        }
+
+        const [rows] = await pool.query(query, params);
         
-        const worksheet = XLSX.utils.json_to_sheet(rows);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Elementos");
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Elementos');
 
-        const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+        if (rows.length > 0) {
+            worksheet.columns = Object.keys(rows[0]).map(key => ({
+                header: key.toUpperCase().replace('_', ' '),
+                key: key
+            }));
+            worksheet.addRows(rows);
+            aplicarEstilosExcel(worksheet, 'Reporte de Elementos');
+        }
 
-        res.setHeader('Content-Disposition', 'attachment; filename="reporte_elementos.xlsx"');
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.send(buffer);
+        res.setHeader('Content-Disposition', `attachment; filename="reporte_elementos_${new Date().getTime()}.xlsx"`);
+
+        await workbook.xlsx.write(res);
+        res.end();
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error al exportar elementos' });
@@ -119,17 +174,52 @@ app.get('/api/export/elementos', async (req, res) => {
 
 app.get('/api/export/equipos', async (req, res) => {
     try {
-        const [rows] = await pool.query("SELECT * FROM equipos");
+        const { search } = req.query;
+        let query = `
+            SELECT
+                marca,
+                modelo,
+                estado,
+                nombre_equipo,
+                DATE_FORMAT(fecha_compra, '%Y-%m-%d') AS fecha_compra,
+                placa,
+                usuario,
+                correo,
+                sistema_operativo,
+                numero_serie,
+                ubicacion,
+                anydesk,
+                DATE_FORMAT(fecha_ultimo_mantenimiento, '%Y-%m-%d') AS fecha_ultimo_manto,
+                DATE_FORMAT(fecha_proximo_mantenimiento, '%Y-%m-%d') AS fecha_proximo_manto
+            FROM equipos
+        `;
+        let params = [];
+
+        if (search) {
+            query += ` WHERE marca LIKE ? OR modelo LIKE ? OR estado LIKE ? OR nombre_equipo LIKE ? OR numero_serie LIKE ? OR usuario LIKE ? OR correo LIKE ? OR placa LIKE ? OR sistema_operativo LIKE ? OR ubicacion LIKE ? OR anydesk LIKE ?`;
+            const searchVal = `%${search}%`;
+            params = Array(11).fill(searchVal);
+        }
+
+        const [rows] = await pool.query(query, params);
         
-        const worksheet = XLSX.utils.json_to_sheet(rows);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Equipos");
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Equipos');
 
-        const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+        if (rows.length > 0) {
+            worksheet.columns = Object.keys(rows[0]).map(key => ({
+                header: key.toUpperCase().replace(/_/g, ' '),
+                key: key
+            }));
+            worksheet.addRows(rows);
+            aplicarEstilosExcel(worksheet, 'Reporte de Equipos');
+        }
 
-        res.setHeader('Content-Disposition', 'attachment; filename="reporte_equipos.xlsx"');
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.send(buffer);
+        res.setHeader('Content-Disposition', `attachment; filename="reporte_equipos_${new Date().getTime()}.xlsx"`);
+
+        await workbook.xlsx.write(res);
+        res.end();
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error al exportar equipos' });
