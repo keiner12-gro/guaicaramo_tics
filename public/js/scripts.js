@@ -93,7 +93,18 @@ const alerta = (icono, titulo, mensaje) => {
             icon: icono,
             title: titulo,
             text: mensaje,
-            confirmButtonColor: "#2563eb"
+            showClass: {
+                popup: 'animate__animated animate__fadeInUp animate__faster'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutDown animate__faster'
+            },
+            confirmButtonColor: "var(--primary)",
+            customClass: {
+                popup: 'swal2-popup-custom',
+                title: 'swal2-title-custom',
+                confirmButton: 'swal2-confirm-custom'
+            }
         });
     }
     alert(`${titulo}\n${mensaje}`);
@@ -107,10 +118,16 @@ const confirmarAlerta = async (titulo, mensaje) => {
             title: titulo,
             text: mensaje,
             showCancelButton: true,
-            confirmButtonColor: "#dc2626",
-            cancelButtonColor: "#2563eb",
+            confirmButtonColor: "var(--danger)",
+            cancelButtonColor: "var(--primary)",
             confirmButtonText: "Si, eliminar",
-            cancelButtonText: "Cancelar"
+            cancelButtonText: "Cancelar",
+            customClass: {
+                popup: 'swal2-popup-custom',
+                title: 'swal2-title-custom',
+                confirmButton: 'swal2-confirm-custom',
+                cancelButton: 'swal2-confirm-custom'
+            }
         });
         return resultado.isConfirmed;
     }

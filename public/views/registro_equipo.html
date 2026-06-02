@@ -4,103 +4,130 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="../css/styles.css">
-    <title>Registrar Equipo</title>
+    <title>Registrar Equipo | Guaicaramo</title>
 </head>
 <body>
-    <div class="contenedor registro-card w-full bg-neutral-primary-soft p-6 border border-default rounded-base shadow-xs">
-        <div class="registro-header">
-            <a href="../../index.html" class="boton-regresar">Regresar</a>
-            <h5 class="text-xl font-semibold text-heading mb-6">Registrar Equipo</h5>
+    <div class="contenedor registro-card animate__animated animate__fadeIn">
+        <div class="registro-header flex items-center justify-between mb-8 border-b pb-4">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-primary rounded-xl text-white shadow-lg">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold text-bg-dark">Registrar Activo</h1>
+                    <p class="text-sm text-text-muted font-medium">Equipos y Hardware</p>
+                </div>
+            </div>
+            <a href="../../index.html" class="boton-regresar-modern">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Volver
+            </a>
         </div>
 
-        <div class="grid grid-cols-1 gap-8 mb-8">
-            <!-- Opción Excel -->
-            <div class="p-6 border-2 border-dashed border-blue-400 rounded-xl bg-blue-50/50 hover:bg-blue-50 transition-colors">
-                <div class="flex items-center mb-4">
-                    <div class="p-3 bg-blue-500 rounded-lg text-white mr-4">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"></path></svg>
+        <div class="grid grid-cols-1 gap-6 mb-10">
+            <!-- Opción Excel Mejorada -->
+            <div class="p-8 border-2 border-dashed border-primary/30 rounded-2xl bg-white/50 hover:bg-white hover:border-primary transition-all group">
+                <div class="flex flex-col sm:flex-row items-center gap-6">
+                    <div class="p-5 bg-green-500 rounded-2xl text-white shadow-xl group-hover:scale-110 transition-transform">
+                        <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"></path></svg>
                     </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-blue-800">Carga Masiva (Excel)</h3>
-                        <p class="text-sm text-blue-600">Importa múltiples equipos a la vez seleccionando un archivo .xlsx o .xls</p>
+                    <div class="flex-grow text-center sm:text-left">
+                        <h3 class="text-xl font-bold text-bg-dark">Importación Inteligente</h3>
+                        <p class="text-text-muted mb-4">Carga masiva desde archivos Excel (.xlsx). El sistema mapeará las columnas automáticamente.</p>
+                        <input type="file" id="excel-import" accept=".xlsx, .xls" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
                     </div>
                 </div>
-                <input type="file" id="excel-import" accept=".xlsx, .xls" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none p-2">
             </div>
         </div>
 
-        <form action="#" id="form-registro-equipo" class="registro-form">
-            <div>
+        <h3 class="text-lg font-bold text-bg-dark mb-6 flex items-center gap-2">
+            <span class="w-8 h-8 bg-secondary/20 text-secondary rounded-lg flex items-center justify-center text-sm">02</span>
+            Registro Manual
+        </h3>
+
+        <form action="#" id="form-registro-equipo" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
                 <label for="marca">Marca</label>
                 <input type="text" id="marca" required placeholder="Ej: HP, Dell, Lenovo">
             </div>
-            <div>
+            <div class="space-y-2">
                 <label for="modelo">Modelo</label>
                 <input type="text" id="modelo" required placeholder="Ej: ProBook 450">
             </div>
-            <div>
+            <div class="space-y-2">
                 <label for="estado">Estado</label>
-                <input type="text" id="estado" placeholder="Ej: Activo, usado, nuevo">
+                <select id="estado" class="bg-white">
+                    <option value="Nuevo">Nuevo</option>
+                    <option value="Usado">Usado</option>
+                    <option value="Mantenimiento">Mantenimiento</option>
+                    <option value="Reparación">Reparación</option>
+                </select>
             </div>
-            <div>
+            <div class="space-y-2">
                 <label for="nombre_equipo">Nombre del equipo</label>
                 <input type="text" id="nombre_equipo" placeholder="Ej: PC-CONTABILIDAD-01">
             </div>
-            <div>
+            <div class="space-y-2">
                 <label for="fecha_compra">Fecha de compra</label>
                 <input type="date" id="fecha_compra">
             </div>
-            <div>
-                <label for="placa">Placa</label>
-                <input type="text" id="placa">
+            <div class="space-y-2">
+                <label for="placa">Placa TICS</label>
+                <input type="text" id="placa" placeholder="Número de placa">
             </div>
-            <div>
-                <label for="usuario">Usuario</label>
-                <input type="text" id="usuario">
+            <div class="space-y-2">
+                <label for="usuario">Responsable / Usuario</label>
+                <input type="text" id="usuario" placeholder="Nombre completo">
             </div>
-            <div>
-                <label for="correo">Correo</label>
-                <input type="email" id="correo">
+            <div class="space-y-2">
+                <label for="correo">Correo Electrónico</label>
+                <input type="email" id="correo" placeholder="usuario@guaicaramo.com">
             </div>
-            <div>
-                <label for="sistema_operativo">Sistema operativo</label>
-                <input type="text" id="sistema_operativo" placeholder="Ej: Windows 11">
+            <div class="space-y-2">
+                <label for="sistema_operativo">Sistema Operativo</label>
+                <input type="text" id="sistema_operativo" placeholder="Ej: Windows 11 Pro">
             </div>
-            <div>
-                <label for="numero_serie">Serial</label>
-                <input type="text" id="numero_serie" required>
+            <div class="space-y-2">
+                <label for="numero_serie">Número de Serie (S/N)</label>
+                <input type="text" id="numero_serie" required placeholder="Serial único del fabricante">
             </div>
-            <div>
-                <label for="ubicacion">Ubicacion</label>
-                <input type="text" id="ubicacion">
+            <div class="space-y-2">
+                <label for="ubicacion">Ubicación / Sede</label>
+                <input type="text" id="ubicacion" placeholder="Ej: Planta Extractora">
             </div>
-            <div>
-                <label for="anydesk">AnyDesk</label>
-                <input type="text" id="anydesk" placeholder="ID de AnyDesk">
+            <div class="space-y-2">
+                <label for="anydesk">ID AnyDesk</label>
+                <input type="text" id="anydesk" placeholder="999 999 999">
             </div>
-            <div>
-                <label for="fecha_ultimo_mantenimiento">Ultimo mantenimiento</label>
+            <div class="space-y-2">
+                <label for="fecha_ultimo_mantenimiento">Último Mantenimiento</label>
                 <input type="date" id="fecha_ultimo_mantenimiento">
             </div>
-            <div>
-                <label for="fecha_proximo_mantenimiento">Proximo mantenimiento</label>
+            <div class="space-y-2">
+                <label for="fecha_proximo_mantenimiento">Próximo Mantenimiento</label>
                 <input type="date" id="fecha_proximo_mantenimiento">
             </div>
 
-            <button type="submit" class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-base text-sm px-4 py-2.5 text-center">Registrar Equipo</button>
+            <div class="md:col-span-2 pt-4">
+                <button type="submit" class="boton-menu w-full py-4 text-lg">Guardar Equipo en Inventario</button>
+            </div>
         </form>
 
-        <div id="import-log" class="hidden mt-8">
-            <h4 class="text-md font-bold text-gray-700 mb-4 border-b pb-2">Última Importación</h4>
-            <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                <table class="w-full text-sm text-left text-gray-500">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+        <div id="import-log" class="hidden mt-12 animate__animated animate__fadeInUp">
+            <h4 class="text-lg font-bold text-bg-dark mb-4 border-b pb-2 flex items-center gap-2">
+                <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                Resultados de la Importación
+            </h4>
+            <div class="tabla-contenedor-modern">
+                <table class="tabla-modern">
+                    <thead>
                         <tr>
-                            <th class="px-4 py-2">Marca</th>
-                            <th class="px-4 py-2">Modelo</th>
-                            <th class="px-4 py-2">Serial</th>
-                            <th class="px-4 py-2">Estado</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Serial</th>
+                            <th>Resultado</th>
                         </tr>
                     </thead>
                     <tbody id="log-body"></tbody>

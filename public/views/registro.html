@@ -4,52 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="../css/styles.css">
-    <title>Registrar elemento</title>
+    <title>Registrar Elemento | Guaicaramo</title>
 </head>
 <body>
-    <div class="contenedor registro-card w-full bg-neutral-primary-soft p-6 border border-default rounded-base shadow-xs">
-        <div class="registro-header">
-            <a href="../../index.html" class="boton-regresar">Regresar</a>
-            <h5 class="text-xl font-semibold text-heading mb-6">Registrar elemento</h5>
+    <div class="contenedor registro-card animate__animated animate__fadeIn">
+        <div class="registro-header flex items-center justify-between mb-8 border-b pb-4">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-primary rounded-xl text-white shadow-lg">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold text-bg-dark">Registrar Elemento</h1>
+                    <p class="text-sm text-text-muted font-medium">Inventario de Bodega</p>
+                </div>
+            </div>
+            <a href="../../index.html" class="boton-regresar-modern">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Volver
+            </a>
         </div>
 
-        <form action="#" id="form-registro" class="registro-form">
-            <div class="mb-4">
-                <label for="texto" class="block mb-2.5 text-sm font-medium text-heading">Cantidad</label>
-                <input type="text" id="texto" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"  required />
+        <form action="#" id="form-registro" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+                <label for="texto">Cantidad</label>
+                <input type="number" id="texto" required placeholder="Ej: 5">
             </div>
-            <div>
-                <label for="modelo" class="block mb-2.5 text-sm font-medium text-heading">Modelo</label>
-                <input type="text" id="modelo" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"  required />
+            <div class="space-y-2">
+                <label for="modelo">Modelo</label>
+                <input type="text" id="modelo" required placeholder="Ej: Logitech M170">
             </div>
-            <div>
-                <label for="texto3" class="block mb-2.5 text-sm font-medium text-heading">Marca</label>
-                <input type="text" id="texto3" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"  required />
+            <div class="space-y-2">
+                <label for="texto3">Marca</label>
+                <input type="text" id="texto3" required placeholder="Ej: Logitech">
             </div>
-            <div>
-                <label for="texto4" class="block mb-2.5 text-sm font-medium text-heading">Serial</label>
-                <input type="text" id="texto4" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"  required />
+            <div class="space-y-2">
+                <label for="texto4">Serial / Código</label>
+                <input type="text" id="texto4" required placeholder="N/A o Serial">
             </div>
-            <div>
-                <label for="texto5" class="block mb-2.5 text-sm font-medium text-heading">Placa</label>
-                <input type="text" id="texto5" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"  required />
+            <div class="space-y-2">
+                <label for="texto5">Placa</label>
+                <input type="text" id="texto5" required placeholder="N/A o Placa">
             </div>
-            <div>
-                <label for="texto2" class="block mb-2.5 text-sm font-medium text-heading">Descripcion</label>
-                <input type="text" id="texto2" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" />
+            <div class="space-y-2">
+                <label for="texto2">Descripción del Elemento</label>
+                <input type="text" id="texto2" placeholder="Ej: Mouse inalámbrico negro">
             </div>
-            <div>
-                <label for="fecha_ingreso" class="block mb-2.5 text-sm font-medium text-heading">Fecha de ingreso</label>
-                <input type="date" id="fecha_ingreso" onkeydown="return false" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs">
+            <div class="space-y-2">
+                <label for="fecha_ingreso">Fecha de Ingreso</label>
+                <input type="date" id="fecha_ingreso" onkeydown="return false">
             </div>
-            <div>
-                <label for="fecha_de_baja" class="block mb-2.5 text-sm font-medium text-heading">Fecha de baja</label>
-                <input type="date" id="fecha_de_baja" onkeydown="return false" class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs">
+            <div class="space-y-2">
+                <label for="fecha_de_baja">Fecha de Baja (Opcional)</label>
+                <input type="date" id="fecha_de_baja" onkeydown="return false">
             </div>
-            <button type="submit" class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-base text-sm px-4 py-2.5 text-center leading-5">Registrar</button>
+            <div class="md:col-span-2 pt-4">
+                <button type="submit" class="boton-menu w-full py-4 text-lg">Guardar en Bodega</button>
+            </div>
         </form>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../js/scripts.js" defer></script>
 </body>

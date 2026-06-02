@@ -4,34 +4,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="public/css/styles.css">
-    <title>Guaicaramo SAS</title>
+    <title>Guaicaramo SAS | Gestión TICS</title>
 </head>
 <body>
-    <div class="contenedor menu-contenedor w-full max-w-sm bg-neutral-primary-soft p-6 border border-default rounded-base shadow-xs">
-        <div class="titulo-principal">
-            <h1>GUAICARAMO SAS</h1>
-            <p>AREA TICS</p>
+    <div class="contenedor menu-contenedor animate__animated animate__fadeIn">
+        <div class="titulo-principal mb-8 text-center">
+            <h1 class="text-4xl">GUAICARAMO SAS</h1>
+            <p class="text-secondary tracking-widest font-bold">DEPARTAMENTO DE TICS</p>
         </div>
 
-        <div class="flex flex-col gap-4 w-full">
-            <div class="menu-desplegable w-full">
-                <button type="button" id="btn-bodega" class="boton-menu">Bodega</button>
-                <div id="opciones-bodega" class="opciones-menu w-full">
-                    <a href="public/views/registro.html">Registrar Elemento</a>
-                    <a href="public/views/consultar_pro.html">Consultar Elementos</a>
-                    <a href="public/views/eliminar_pro.html">Eliminar Elementos</a>
+        <div class="grid grid-cols-1 gap-6 w-full mt-4">
+            <!-- Sección Bodega -->
+            <div class="menu-desplegable w-full group">
+                <button type="button" id="btn-bodega" class="boton-menu w-full py-4 flex justify-between px-6 items-center">
+                    <span class="flex items-center gap-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                        Gestión de Bodega
+                    </span>
+                    <svg class="w-5 h-5 transform transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+                <div id="opciones-bodega" class="opciones-menu w-full mt-2">
+                    <a href="public/views/registro.html" class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Registrar Elemento
+                    </a>
+                    <a href="public/views/consultar_pro.html" class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        Consultar Inventario
+                    </a>
+                    <a href="public/views/eliminar_pro.html" class="flex items-center gap-2 text-danger hover:bg-red-50">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        Eliminar Elementos
+                    </a>
                 </div>
             </div>
 
-            <div class="menu-desplegable w-full">
-                <button type="button" id="btn-equipos" class="boton-menu" style="background: linear-gradient(135deg, #14b8a6, #2563eb);">Equipos</button>
-                <div id="opciones-equipos" class="opciones-menu w-full">
-                    <a href="public/views/registro_equipo.html">Registrar Equipo (Excel/OCR)</a>
-                    <a href="public/views/consultar_equipo.html">Consultar Equipos</a>
-                    <a href="public/views/eliminar_equipo.html">Eliminar Equipos</a>
+            <!-- Sección Equipos -->
+            <div class="menu-desplegable w-full group">
+                <button type="button" id="btn-equipos" class="boton-menu w-full py-4 flex justify-between px-6 items-center" style="background: linear-gradient(135deg, var(--secondary), var(--primary));">
+                    <span class="flex items-center gap-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        Gestión de Equipos
+                    </span>
+                    <svg class="w-5 h-5 transform transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+                <div id="opciones-equipos" class="opciones-menu w-full mt-2">
+                    <a href="public/views/registro_equipo.html" class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Registrar Equipo (Excel/Manual)
+                    </a>
+                    <a href="public/views/consultar_equipo.html" class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Consultar Activos
+                    </a>
+                    <a href="public/views/eliminar_equipo.html" class="flex items-center gap-2 text-danger hover:bg-red-50">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        Baja de Equipos
+                    </a>
                 </div>
             </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-100 w-full text-center">
+            <p class="text-xs text-text-muted font-medium uppercase tracking-tighter">Sistema de Control Interno v2.0</p>
         </div>
     </div>
 
@@ -41,19 +78,22 @@
         const opcionesBodega = document.getElementById('opciones-bodega');
         const opcionesEquipos = document.getElementById('opciones-equipos');
 
-        btnBodega.addEventListener('click', function(e) {
+        function toggleMenu(menu, other) {
+            other.classList.remove('mostrar');
+            menu.classList.toggle('mostrar');
+        }
+
+        btnBodega.addEventListener('click', (e) => {
             e.stopPropagation();
-            opcionesEquipos.classList.remove('mostrar');
-            opcionesBodega.classList.toggle('mostrar');
+            toggleMenu(opcionesBodega, opcionesEquipos);
         });
 
-        btnEquipos.addEventListener('click', function(e) {
+        btnEquipos.addEventListener('click', (e) => {
             e.stopPropagation();
-            opcionesBodega.classList.remove('mostrar');
-            opcionesEquipos.classList.toggle('mostrar');
+            toggleMenu(opcionesEquipos, opcionesBodega);
         });
 
-        window.addEventListener('click', function(e) {
+        window.addEventListener('click', (e) => {
             if (!opcionesBodega.contains(e.target) && e.target !== btnBodega) {
                 opcionesBodega.classList.remove('mostrar');
             }

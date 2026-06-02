@@ -4,36 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="../css/styles.css">
-    <title>Eliminar Equipos</title>
+    <title>Baja de Equipos | Guaicaramo</title>
 </head>
 <body>
-    <div class="consulta-card w-full max-w-7xl bg-white p-8 border border-gray-200 rounded-2xl shadow-xl mx-auto my-10">
-        <div class="consulta-header">
-            <div class="flex justify-between items-center">
-                <a href="../../index.html" class="boton-regresar">Regresar</a>
-                <h1 class="text-3xl font-extrabold text-gray-800">Eliminar Equipos</h1>
-                <button id="eliminar-todos-equipos" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-red-200 transform hover:-translate-y-1">
+    <div class="contenedor-wide animate__animated animate__fadeIn">
+        <div class="consulta-header flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 border-b pb-6">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-danger rounded-xl text-white shadow-lg">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-extrabold text-bg-dark tracking-tight">Dar de Baja Equipos</h1>
+                    <p class="text-danger font-bold">Gestión de Retiro de Activos Tecnológicos</p>
+                </div>
+            </div>
+            
+            <div class="flex gap-4">
+                <button id="eliminar-todos-equipos" class="bg-danger hover:bg-danger-hover text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-danger/20 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     Eliminar Todo
                 </button>
+                <a href="../../index.html" class="boton-regresar-modern">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Volver
+                </a>
             </div>
         </div>
 
-        <div class="tabla-contenedor-modern mt-8">
-            <table class="w-full border-collapse bg-white overflow-hidden rounded-xl" id="tabla-equipos-eliminar">
-                <thead class="bg-gray-800 text-white">
-                    <tr>
-                        <th class="px-8 py-4 text-left text-sm font-bold uppercase tracking-wider">Marca</th>
-                        <th class="px-8 py-4 text-left text-sm font-bold uppercase tracking-wider">Modelo</th>
-                        <th class="px-8 py-4 text-left text-sm font-bold uppercase tracking-wider">Nombre equipo</th>
-                        <th class="px-8 py-4 text-left text-sm font-bold uppercase tracking-wider">Serial</th>
-                        <th class="px-8 py-4 text-left text-sm font-bold uppercase tracking-wider">Usuario</th>
-                        <th class="px-8 py-4 text-left text-sm font-bold uppercase tracking-wider">Placa</th>
-                        <th class="px-8 py-4 text-center text-sm font-bold uppercase tracking-wider">Acción</th>
+        <div class="flex flex-col lg:flex-row justify-between items-center gap-6 mb-8">
+            <form id="form-busqueda-equipo" class="w-full lg:max-w-2xl">
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <svg class="w-5 h-5 text-text-muted group-focus-within:text-danger transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="busqueda-equipo" class="pl-12 py-4 bg-white/50 border-2 border-transparent focus:border-danger focus:bg-white transition-all shadow-sm w-full rounded-2xl" placeholder="Buscar equipo para eliminar...">
+                </div>
+            </form>
+            <div id="contador-equipos" class="px-4 py-2 bg-danger/10 text-danger font-bold rounded-xl text-sm whitespace-nowrap">
+                Calculando...
+            </div>
+        </div>
+
+        <div class="tabla-contenedor-modern animate__animated animate__fadeInUp shadow-2xl">
+            <table class="tabla-modern" id="tabla-equipos-eliminar">
+                <thead>
+                    <tr class="bg-slate-50">
+                        <th class="px-8 py-5">Marca</th>
+                        <th class="px-8 py-5">Modelo</th>
+                        <th class="px-8 py-5">Nombre equipo</th>
+                        <th class="px-8 py-5">Serial</th>
+                        <th class="px-8 py-5">Usuario</th>
+                        <th class="px-8 py-5">Placa</th>
+                        <th class="px-8 py-5 text-center">Acción</th>
                     </tr>
                 </thead>
-                <tbody id="equipos-eliminar-body" class="divide-y divide-gray-200">
-                    <!-- Datos cargados dinámicamente -->
+                <tbody id="equipos-eliminar-body" class="bg-white">
+                    <!-- Dinámico -->
                 </tbody>
             </table>
         </div>

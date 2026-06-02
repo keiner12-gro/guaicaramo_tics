@@ -4,52 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="../css/styles.css">
-    <title>Consultar elementos</title>
+    <title>Consultar Bodega | Guaicaramo</title>
 </head>
 <body>
-    <a href="../../index.html" class="boton-regresar">Regresar</a>
-
-    <main class="consulta-card">
-        <section class="consulta-header">
-            <h1>Consultar elementos</h1>
-            <form id="form" class="consulta-form">
-                <div class="contenedor-input">
-                    <label>
-                        Buscar elemento <span>:</span>
-                    </label>
-                    <input type="text" id="dato1" placeholder="Descripcion, marca, serial, placa o modelo">
+    <div class="contenedor-wide animate__animated animate__fadeIn">
+        <div class="consulta-header flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 border-b pb-6">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-primary rounded-xl text-white shadow-lg">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
-                <button id="consulta" type="submit">Consultar</button>
-                <div class="txt" id="exito"></div>
-                <div class="txt" id="error"></div>
+                <div>
+                    <h1 class="text-3xl font-extrabold text-bg-dark tracking-tight">Inventario de Bodega</h1>
+                    <p class="text-secondary font-bold">Consulta General de Repuestos y Suministros</p>
+                </div>
+            </div>
+            
+            <a href="../../index.html" class="boton-regresar-modern">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Menu Principal
+            </a>
+        </div>
+
+        <div class="flex flex-col lg:flex-row justify-between items-center gap-6 mb-8">
+            <form id="form" class="w-full lg:max-w-2xl">
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <svg class="w-5 h-5 text-text-muted group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="dato1" class="pl-12 py-4 bg-white/50 border-2 border-transparent focus:border-primary focus:bg-white transition-all shadow-sm w-full rounded-2xl" placeholder="Buscar por descripción, marca, serial, placa o modelo...">
+                </div>
             </form>
-        </section>
 
-        <section class="acciones-exportar">
-            <button type="button" id="exportar-excel">Exportar Excel</button>
-            <button type="button" id="exportar-pdf">Exportar PDF</button>
-        </section>
+            <div class="flex items-center gap-4 w-full lg:w-auto">
+                <button type="button" id="exportar-excel" class="btn-excel w-full lg:w-auto py-3 px-6 shadow-lg shadow-green-500/20">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"></path></svg>
+                    Exportar Inventario
+                </button>
+            </div>
+        </div>
 
-        <div class="tabla-card">
-            <table id="tabla-elementos" class="tabla-consulta">
+        <div class="tabla-contenedor-modern animate__animated animate__fadeInUp shadow-2xl">
+            <table class="tabla-modern">
                 <thead>
-                    <tr>
-                        <th scope="col">Cantidad</th>
-                        <th scope="col">Modelo</th>
-                        <th scope="col">Marca</th>
-                        <th scope="col">Serial</th>
-                        <th scope="col">Placa</th>
-                        <th scope="col">Descripcion</th>
-                        <th scope="col">Fecha de ingreso</th>
-                        <th scope="col">Fecha de baja</th>
+                    <tr class="bg-slate-50">
+                        <th class="w-20">Cantidad</th>
+                        <th>Modelo</th>
+                        <th>Marca</th>
+                        <th>Serial</th>
+                        <th>Placa</th>
+                        <th>Descripción</th>
+                        <th>Ingreso</th>
+                        <th>Baja</th>
                     </tr>
                 </thead>
-                <tbody id="elementos-body">
+                <tbody id="elementos-body" class="bg-white">
+                    <!-- Dinámico -->
                 </tbody>
             </table>
         </div>
-    </main>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../js/scripts.js" defer></script>
