@@ -257,7 +257,12 @@ const normalizarFecha = (valor) => {
         }
     }
 
-    // 3. Intentar parsear como fecha genérica
+    // 3. Evitar interpretar años sueltos como fechas (ej: 2016)
+    if (/^\d{4}$/.test(texto)) {
+        return null;
+    }
+
+    // 4. Intentar parsear como fecha genérica
     const d = new Date(texto);
     if (!isNaN(d.getTime())) {
         try {

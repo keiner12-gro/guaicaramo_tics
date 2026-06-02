@@ -46,7 +46,10 @@ const fechaExcel = (valor) => {
         }
     }
 
-    // 3. Intentar parsear como fecha genérica
+    // 3. Evitar interpretar años sueltos como fechas (ej: 2016)
+    if (/^\d{4}$/.test(limpio)) return "";
+
+    // 4. Intentar parsear como fecha genérica
     const d = new Date(limpio);
     if (!isNaN(d.getTime())) {
         try {
