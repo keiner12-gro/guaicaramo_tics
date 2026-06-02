@@ -11,7 +11,7 @@
   "categories": ["business", "productivity"],
   "icons": [
     {
-      "src": "assets/images.jpg",
+      "src": "/assets/images.jpg",
       "sizes": "512x512",
       "type": "image/jpeg"
     }
