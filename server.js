@@ -619,9 +619,17 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
 
             cedula: obtenerValor(fila, [
                 'identificacion',
+                'identificación',
                 'cc',
                 'cedula',
-                'identificación'
+                'cédula',
+                'id',
+                'documento',
+                'doc',
+                'numero de cedula',
+                'nro cedula',
+                'cedula responsable',
+                'cc responsable'
             ]),
 
             fecha_ultimo_mantenimiento: obtenerValor(fila, [
