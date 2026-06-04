@@ -284,6 +284,7 @@ const ensureEquipoColumns = async () => {
     const columnas = [
         ['nombre_equipo', 'VARCHAR(255) NULL'],
         ['anydesk', 'VARCHAR(255) NULL'],
+        ['cedula', 'VARCHAR(50) NULL'],
         ['fecha_ultimo_mantenimiento', 'DATE NULL'],
         ['fecha_proximo_mantenimiento', 'DATE NULL']
     ];
@@ -394,6 +395,7 @@ app.get('/api/equipos', async (req, res) => {
                 placa,
                 usuario,
                 correo,
+                cedula,
                 sistema_operativo,
                 numero_serie,
                 ubicacion,
@@ -405,9 +407,9 @@ app.get('/api/equipos', async (req, res) => {
         let params = [];
 
         if (search) {
-            query += ` WHERE marca LIKE ? OR modelo LIKE ? OR estado LIKE ? OR nombre_equipo LIKE ? OR numero_serie LIKE ? OR usuario LIKE ? OR correo LIKE ? OR placa LIKE ? OR sistema_operativo LIKE ? OR ubicacion LIKE ? OR anydesk LIKE ?`;
+            query += ` WHERE marca LIKE ? OR modelo LIKE ? OR estado LIKE ? OR nombre_equipo LIKE ? OR numero_serie LIKE ? OR usuario LIKE ? OR correo LIKE ? OR placa LIKE ? OR sistema_operativo LIKE ? OR ubicacion LIKE ? OR anydesk LIKE ? OR cedula LIKE ?`;
             const searchVal = `%${search}%`;
-            params = Array(11).fill(searchVal);
+            params = Array(12).fill(searchVal);
         }
 
         const [rows] = await pool.query(query, params);
@@ -427,17 +429,17 @@ app.post('/api/equipos', async (req, res) => {
     try {
         const { 
             marca, modelo, estado, nombre_equipo, fecha_compra, placa,
-            usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk,
+            usuario, correo, cedula, sistema_operativo, numero_serie, ubicacion, anydesk,
             fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento 
         } = req.body;
 
         const query = `INSERT INTO equipos 
-            (marca, modelo, estado, nombre_equipo, fecha_compra, placa, usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk, fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            (marca, modelo, estado, nombre_equipo, fecha_compra, placa, usuario, correo, cedula, sistema_operativo, numero_serie, ubicacion, anydesk, fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
         const [result] = await pool.query(query, [
             marca, modelo, estado, nombre_equipo, normalizarFecha(fecha_compra), placa,
-            usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk,
+            usuario, correo, cedula, sistema_operativo, numero_serie, ubicacion, anydesk,
             normalizarFecha(fecha_ultimo_mantenimiento), normalizarFecha(fecha_proximo_mantenimiento)
         ]);
 
@@ -614,6 +616,13 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
                 'anydesk'
             ]),
 
+            cedula: obtenerValor(fila, [
+                'identificacion',
+                'cc',
+                'cedula',
+                'identificación'
+            ]),
+
             fecha_ultimo_mantenimiento: obtenerValor(fila, [
                 'fecha mantenimiento',
                 'ultimo mantenimiento'
@@ -631,7 +640,8 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             e.modelo ||
             e.nombre_equipo ||
             e.numero_serie ||
-            e.usuario
+            e.usuario ||
+            e.cedula
         );
 
         console.log(
@@ -658,6 +668,7 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             e.placa,
             e.usuario,
             e.correo,
+            e.cedula,
             e.sistema_operativo,
             e.numero_serie,
             e.ubicacion,
@@ -682,6 +693,7 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
                 placa,
                 usuario,
                 correo,
+                cedula,
                 sistema_operativo,
                 numero_serie,
                 ubicacion,
@@ -749,19 +761,19 @@ app.put('/api/equipos/:id', async (req, res) => {
         const { id } = req.params;
         const { 
             marca, modelo, estado, nombre_equipo, fecha_compra, placa,
-            usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk,
+            usuario, correo, cedula, sistema_operativo, numero_serie, ubicacion, anydesk,
             fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento 
         } = req.body;
 
         const query = `UPDATE equipos SET 
             marca = ?, modelo = ?, estado = ?, nombre_equipo = ?, fecha_compra = ?, placa = ?, 
-            usuario = ?, correo = ?, sistema_operativo = ?, numero_serie = ?, ubicacion = ?, 
+            usuario = ?, correo = ?, cedula = ?, sistema_operativo = ?, numero_serie = ?, ubicacion = ?, 
             anydesk = ?, fecha_ultimo_mantenimiento = ?, fecha_proximo_mantenimiento = ? 
             WHERE id = ?`;
 
         await pool.query(query, [
             marca, modelo, estado, nombre_equipo, normalizarFecha(fecha_compra), placa,
-            usuario, correo, sistema_operativo, numero_serie, ubicacion, anydesk,
+            usuario, correo, cedula, sistema_operativo, numero_serie, ubicacion, anydesk,
             normalizarFecha(fecha_ultimo_mantenimiento), normalizarFecha(fecha_proximo_mantenimiento), id
         ]);
 

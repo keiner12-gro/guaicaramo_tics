@@ -89,6 +89,7 @@ const mapearEquipo = (fila) => ({
     placa: valorFila(fila, ["Placa", "Placa CPU", "Placa TICS", "Placa TICS/Activo"]),
     usuario: valorFila(fila, ["Responsable", "Nombre responsable", "Funcionario", "Nombre", "Nombre usuario", "Usuario", "", "__EMPTY", "__EMPTY_1"]),
     correo: valorFila(fila, ["Correo", "Email", "Correo electronico", "Correo electrónico"]),
+    cedula: valorFila(fila, ["Identificacion", "CC", "Cedula", "Identificación", "Documento"]),
     sistema_operativo: valorFila(fila, ["Sistema operativo", "SO", "S.O."]),
     numero_serie: valorFila(fila, ["Serial", "Serial CPU", "Serie", "Numero de serie", "Numero serie", "Número de serie", "S/N"]),
     ubicacion: valorFila(fila, ["Ubicacion", "Ubicación", "Sede"]),
@@ -409,6 +410,7 @@ const abrirModalEquipo = (equipo) => {
     document.getElementById("edit-equipo-serial").value = equipo.numero_serie;
     document.getElementById("edit-equipo-anydesk").value = equipo.anydesk;
     document.getElementById("edit-equipo-correo").value = equipo.correo;
+    document.getElementById("edit-equipo-cedula").value = equipo.cedula;
     document.getElementById("edit-equipo-compra").value = equipo.fechaCompra;
     document.getElementById("edit-equipo-manto-ant").value = equipo.fechaUltimoMantenimiento;
     document.getElementById("edit-equipo-manto-prox").value = equipo.fechaProximoMantenimiento;
@@ -472,6 +474,7 @@ const inicializarEdicion = () => {
                 numero_serie: document.getElementById("edit-equipo-serial").value,
                 anydesk: document.getElementById("edit-equipo-anydesk").value,
                 correo: document.getElementById("edit-equipo-correo").value,
+                cedula: document.getElementById("edit-equipo-cedula").value,
                 fecha_compra: document.getElementById("edit-equipo-compra").value,
                 fecha_ultimo_mantenimiento: document.getElementById("edit-equipo-manto-ant").value,
                 fecha_proximo_mantenimiento: document.getElementById("edit-equipo-manto-prox").value
@@ -535,6 +538,8 @@ const registrarEquipo = () => {
 
     formulario.addEventListener("submit", async (evento) => {
         evento.preventDefault();
+
+        
 
         const equipo = mapearEquipo({
             marca: document.getElementById("marca")?.value,
