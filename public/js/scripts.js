@@ -89,7 +89,16 @@ const mapearEquipo = (fila) => ({
     placa: valorFila(fila, ["Placa", "Placa CPU", "Placa TICS", "Placa TICS/Activo"]),
     usuario: valorFila(fila, ["Responsable", "Nombre responsable", "Funcionario", "Nombre", "Nombre usuario", "Usuario", "", "__EMPTY", "__EMPTY_1"]),
     correo: valorFila(fila, ["Correo", "Email", "Correo electronico", "Correo electrónico"]),
-    cedula: valorFila(fila, ["Identificacion", "CC", "Cedula", "Identificación", "Documento"]),
+    cedula: valorFila(fila, [
+        "Identificación (CC)",
+        "Identificacion (CC)",
+        "Identificación",
+        "Identificacion",
+        "CC",
+        "Cedula",
+        "Cédula",
+        "Documento"
+    ]),
     sistema_operativo: valorFila(fila, ["Sistema operativo", "SO", "S.O."]),
     numero_serie: valorFila(fila, ["Serial", "Serial CPU", "Serie", "Numero de serie", "Numero serie", "Número de serie", "S/N"]),
     ubicacion: valorFila(fila, ["Ubicacion", "Ubicación", "Sede"]),
