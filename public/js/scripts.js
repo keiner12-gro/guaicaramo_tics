@@ -550,6 +550,7 @@ const registrarEquipo = () => {
             placa: document.getElementById("placa")?.value,
             usuario: document.getElementById("usuario")?.value,
             correo: document.getElementById("correo")?.value,
+            cedula: document.getElementById("cedula")?.value,
             sistema_operativo: document.getElementById("sistema_operativo")?.value,
             numero_serie: document.getElementById("numero_serie")?.value,
             ubicacion: document.getElementById("ubicacion")?.value,

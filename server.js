@@ -185,6 +185,7 @@ app.get('/api/export/equipos', async (req, res) => {
                 placa,
                 usuario,
                 correo,
+                cedula,
                 sistema_operativo,
                 numero_serie,
                 ubicacion,
@@ -196,9 +197,9 @@ app.get('/api/export/equipos', async (req, res) => {
         let params = [];
 
         if (search) {
-            query += ` WHERE marca LIKE ? OR modelo LIKE ? OR estado LIKE ? OR nombre_equipo LIKE ? OR numero_serie LIKE ? OR usuario LIKE ? OR correo LIKE ? OR placa LIKE ? OR sistema_operativo LIKE ? OR ubicacion LIKE ? OR anydesk LIKE ?`;
+            query += ` WHERE marca LIKE ? OR modelo LIKE ? OR estado LIKE ? OR nombre_equipo LIKE ? OR numero_serie LIKE ? OR usuario LIKE ? OR correo LIKE ? OR cedula LIKE ? OR placa LIKE ? OR sistema_operativo LIKE ? OR ubicacion LIKE ? OR anydesk LIKE ?`;
             const searchVal = `%${search}%`;
-            params = Array(11).fill(searchVal);
+            params = Array(12).fill(searchVal);
         }
 
         const [rows] = await pool.query(query, params);
