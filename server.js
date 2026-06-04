@@ -618,6 +618,8 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             ]),
 
             cedula: obtenerValor(fila, [
+                'Identificación (CC)',
+                'Identificacion (CC)',
                 'identificacion',
                 'identificación',
                 'cc',
