@@ -10,7 +10,7 @@
     --text-main: #1e293b;
     --text-muted: #64748b;
     --glass-bg: rgba(255, 255, 255, 0.85);
-    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-border: rgba(31, 75, 6, 0.4);
     --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
