@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --primary: #2563eb;
-    --primary-hover: #1d4ed8;
-    --secondary: #14b8a6;
+    --primary: #a4845c;
+    --primary-hover: #8b6f47;
+    --secondary: #b8860b;
     --danger: #ef4444;
     --danger-hover: #dc2626;
     --bg-dark: #0f172a;
@@ -62,7 +62,7 @@ h1, h5 {
 
 .titulo-principal h1 {
     font-size: 2.5rem;
-    background: linear-gradient(to right, var(--primary), var(--secondary));
+    background: linear-gradient(to right, #b8860b, #a4845c);
     -webkit-background-clip: text;
     background-clip: text; /* Propiedad estándar para mayor compatibilidad */
     -webkit-text-fill-color: transparent;
@@ -118,23 +118,23 @@ input:focus {
 }
 
 .boton-menu {
-    background: linear-gradient(135deg, var(--primary), #3b82f6);
+    background: linear-gradient(135deg, var(--primary), #b8860b);
     color: white;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 4px 12px rgba(164, 132, 92, 0.2);
 }
 
 .boton-menu:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 8px 20px rgba(164, 132, 92, 0.3);
 }
 
 .btn-excel {
-    background: #10b981;
+    background: #b8860b;
     color: white;
 }
 
 .btn-excel:hover {
-    background: #059669;
+    background: #8b6914;
     transform: translateY(-2px);
 }
 
