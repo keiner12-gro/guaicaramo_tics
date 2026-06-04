@@ -307,6 +307,9 @@ input:focus {
 .btn-ficha-edit:hover { background: var(--primary-hover); transform: scale(1.02); }
 .btn-ficha-delete:hover { background: #fecaca; transform: scale(1.02); }
 
+.bg-primary { background-color: var(--primary) !important; }
+.bg-secondary { background-color: var(--secondary) !important; }
+
 /* Modal Edición */
 .modal-edicion {
     position: fixed;
