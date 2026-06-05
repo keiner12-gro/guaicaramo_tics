@@ -1,16 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --primary: #50b8f8;
-    --primary-hover: #39eeac;
-    --secondary: #72f12d;
+    --primary: #15803d; /* Verde Palma */
+    --primary-hover: #166534;
+    --secondary: #f59e0b; /* Dorado Aceite */
     --danger: #ef4444;
     --danger-hover: #dc2626;
-    --bg-dark: #0f172a;
-    --text-main: #1e293b;
-    --text-muted: #64748b;
+    --bg-dark: #064e3b; /* Verde Profundo */
+    --text-main: #064e3b;
+    --text-muted: #475569;
     --glass-bg: rgba(255, 255, 255, 0.85);
-    --glass-border: rgba(31, 75, 6, 0.4);
+    --glass-border: rgba(21, 128, 61, 0.3);
     --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -62,7 +62,7 @@ h1, h5 {
 
 .titulo-principal h1 {
     font-size: 2.5rem;
-    background: linear-gradient(to right, #ef54c8, #a4845c);
+    background: linear-gradient(to right, #166534, #f59e0b);
     -webkit-background-clip: text;
     background-clip: text; /* Propiedad estándar para mayor compatibilidad */
     -webkit-text-fill-color: transparent;
@@ -118,14 +118,14 @@ input:focus {
 }
 
 .boton-menu {
-    background: linear-gradient(135deg, var(--primary), #2eb80b);
+    background: linear-gradient(135deg, var(--primary), #3f6212);
     color: white;
-    box-shadow: 0 4px 12px rgba(164, 132, 92, 0.2);
+    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.2);
 }
 
 .boton-menu:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(164, 132, 92, 0.3);
+    box-shadow: 0 8px 20px rgba(21, 128, 61, 0.3);
 }
 
 .btn-excel {
