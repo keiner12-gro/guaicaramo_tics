@@ -78,6 +78,38 @@ const fechaExcel = (valor) => {
     return "";
 };
 
+// Suma "meses" a una fecha 'YYYY-MM-DD', ajustando al último día del mes
+// destino si el día original no existe ahí (ej. 31 ene + 1 mes -> 28/29 feb).
+const sumarMeses = (fechaISO, meses) => {
+    if (!fechaISO || !/^\d{4}-\d{2}-\d{2}$/.test(fechaISO) || !meses) return "";
+    const [anio, mes, dia] = fechaISO.split('-').map(Number);
+
+    const fecha = new Date(Date.UTC(anio, mes - 1, 1));
+    fecha.setUTCMonth(fecha.getUTCMonth() + Number(meses));
+
+    const ultimoDiaMesDestino = new Date(Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth() + 1, 0)).getUTCDate();
+    fecha.setUTCDate(Math.min(dia, ultimoDiaMesDestino));
+
+    return fecha.toISOString().slice(0, 10);
+};
+
+// Enlaza los campos "último mantenimiento" + "frecuencia" para que el campo
+// "próximo mantenimiento" (de solo lectura) se recalcule solo al cambiarlos.
+const enlazarCalculoProximoMantenimiento = (idUltimo, idFrecuencia, idProximo) => {
+    const inputUltimo = document.getElementById(idUltimo);
+    const selectFrecuencia = document.getElementById(idFrecuencia);
+    const inputProximo = document.getElementById(idProximo);
+    if (!inputUltimo || !selectFrecuencia || !inputProximo) return;
+
+    const recalcular = () => {
+        const calculado = sumarMeses(inputUltimo.value, selectFrecuencia.value);
+        if (calculado) inputProximo.value = calculado;
+    };
+
+    inputUltimo.addEventListener("change", recalcular);
+    selectFrecuencia.addEventListener("change", recalcular);
+};
+
 const valorFila = (fila, nombres) => {
     const normalizar = (valor) => texto(valor)
         .normalize("NFD")
@@ -113,6 +145,7 @@ const mapearEquipo = (fila) => ({
     ubicacion: valorFila(fila, ["Ubicacion", "Ubicación", "Sede"]),
     anydesk: valorFila(fila, ["AnyDesk", "Anydesk", "Anidex", "Anidesk"]),
     fecha_ultimo_mantenimiento: fechaExcel(valorFila(fila, ["fecha_ultimo_mantenimiento", "Ultimo mantenimiento", "Último mantenimiento", "Manto anterior", "Fecha mantenimiento"])),
+    frecuencia_meses: valorFila(fila, ["frecuencia_meses", "Frecuencia", "Frecuencia meses", "Frecuencia de mantenimiento", "Meses mantenimiento", "Meses Mtto", "Periodicidad"]),
     fecha_proximo_mantenimiento: fechaExcel(valorFila(fila, ["fecha_proximo_mantenimiento", "Proximo mantenimiento", "Próximo mantenimiento", "Proxima revision", "Próxima revisión"]))
 });
 
@@ -161,6 +194,64 @@ const confirmarAlerta = async (titulo, mensaje) => {
         return resultado.isConfirmed;
     }
     return window.confirm(`${titulo}\n${mensaje}`);
+};
+
+// Se activa si ya existe una contraseña de seguridad creada desde el menú principal.
+let passwordConfigurada = false;
+
+const verificarEstadoPassword = async () => {
+    try {
+        const respuesta = await fetch('/api/config/tiene-password');
+        const datos = await respuesta.json();
+        passwordConfigurada = Boolean(datos.tienePassword);
+    } catch (error) {
+        console.error("No se pudo verificar el estado de la contraseña:", error);
+        passwordConfigurada = false;
+    }
+};
+
+// Confirma una eliminación; si hay contraseña de seguridad configurada, la exige.
+// Devuelve { confirmado, password } — password es null si no aplica.
+const confirmarEliminacion = async (titulo, mensaje) => {
+    if (!passwordConfigurada) {
+        const confirmado = await confirmarAlerta(titulo, mensaje);
+        return { confirmado, password: null };
+    }
+
+    if (!window.Swal) {
+        const confirmado = window.confirm(`${titulo}\n${mensaje}`);
+        const password = confirmado ? (window.prompt("Contraseña de seguridad:") || "") : "";
+        return { confirmado: confirmado && Boolean(password), password };
+    }
+
+    const resultado = await Swal.fire({
+        icon: "warning",
+        title: titulo,
+        text: mensaje,
+        input: "password",
+        inputPlaceholder: "Contraseña de seguridad",
+        inputAttributes: { autocapitalize: "off", autocorrect: "off" },
+        showCancelButton: true,
+        confirmButtonColor: "var(--danger)",
+        cancelButtonColor: "var(--primary)",
+        confirmButtonText: "Si, eliminar",
+        cancelButtonText: "Cancelar",
+        customClass: {
+            popup: 'swal2-popup-custom',
+            title: 'swal2-title-custom',
+            confirmButton: 'swal2-confirm-custom',
+            cancelButton: 'swal2-confirm-custom'
+        },
+        preConfirm: (password) => {
+            if (!password) {
+                Swal.showValidationMessage("Ingresa la contraseña de seguridad");
+                return false;
+            }
+            return password;
+        }
+    });
+
+    return { confirmado: resultado.isConfirmed, password: resultado.value || null };
 };
 
 const columnasElementos = [
@@ -366,7 +457,7 @@ const mostrarEquipoActual = () => {
                             <span class="valor-pro">${escapeHtml(equipo.fechaUltimoMantenimiento) || "-"}</span>
                         </div>
                         <div class="campo-info">
-                            <span class="etiqueta-pro">Próximo Mantenimiento</span>
+                            <span class="etiqueta-pro">Próximo Mantenimiento${equipo.frecuenciaMeses ? ` (cada ${escapeHtml(equipo.frecuenciaMeses)} meses)` : ""}</span>
                             <span class="valor-pro text-red-600 font-bold">${escapeHtml(equipo.fechaProximoMantenimiento) || "-"}</span>
                         </div>
                     </div>
@@ -445,8 +536,9 @@ const abrirModalEquipo = (equipo) => {
     document.getElementById("edit-equipo-cedula").value = equipo.cedula;
     document.getElementById("edit-equipo-compra").value = equipo.fechaCompra;
     document.getElementById("edit-equipo-manto-ant").value = equipo.fechaUltimoMantenimiento;
+    document.getElementById("edit-equipo-frecuencia").value = equipo.frecuenciaMeses || "";
     document.getElementById("edit-equipo-manto-prox").value = equipo.fechaProximoMantenimiento;
-    
+
     modal.classList.add("active");
 };
 
@@ -509,6 +601,7 @@ const inicializarEdicion = () => {
                 cedula: document.getElementById("edit-equipo-cedula").value,
                 fecha_compra: document.getElementById("edit-equipo-compra").value,
                 fecha_ultimo_mantenimiento: document.getElementById("edit-equipo-manto-ant").value,
+                frecuencia_meses: document.getElementById("edit-equipo-frecuencia").value,
                 fecha_proximo_mantenimiento: document.getElementById("edit-equipo-manto-prox").value
             };
             
@@ -588,6 +681,7 @@ const registrarEquipo = () => {
             ubicacion: document.getElementById("ubicacion")?.value,
             anydesk: document.getElementById("anydesk")?.value,
             fecha_ultimo_mantenimiento: document.getElementById("fecha_ultimo_mantenimiento")?.value,
+            frecuencia_meses: document.getElementById("frecuencia_meses")?.value,
             fecha_proximo_mantenimiento: document.getElementById("fecha_proximo_mantenimiento")?.value
         });
 
@@ -724,49 +818,56 @@ const inicializarConsultaEquipos = async (busqueda = "") => {
     }
 };
 
+const enviarDelete = async (url, password) => {
+    const respuesta = await fetch(url, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: password || undefined })
+    });
+    if (respuesta.status === 401) throw new Error("Contraseña incorrecta.");
+    if (!respuesta.ok) throw new Error("Error al eliminar");
+};
+
 const eliminarElemento = async (id) => {
     const elemento = ultimosElementos.find((e) => e.id === id);
     const nombre = elemento ? (elemento.modelo || elemento.descripcion) : "este elemento";
-    const confirmar = await confirmarAlerta("Confirmar eliminación", `¿Deseas eliminar "${nombre}"?`);
-    if (!confirmar) return;
+    const { confirmado, password } = await confirmarEliminacion("Confirmar eliminación", `¿Deseas eliminar "${nombre}"?`);
+    if (!confirmado) return;
 
     try {
-        const respuesta = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-        if (!respuesta.ok) throw new Error("Error al eliminar");
+        await enviarDelete(`${API_URL}/${id}`, password);
         await alerta("success", "Eliminado", "Elemento eliminado correctamente.");
         inicializarConsulta(); // Re-render elements
     } catch (error) {
-        await alerta("error", "Error", "No se pudo eliminar el elemento.");
+        await alerta("error", "Error", error.message || "No se pudo eliminar el elemento.");
     }
 };
 
 const eliminarEquipo = async (id) => {
     const equipo = allEquipos.find((e) => e.id === id);
     const nombre = equipo ? `${equipo.marca || ""} ${equipo.modelo || ""}`.trim() : "este equipo";
-    const confirmar = await confirmarAlerta("Confirmar eliminación", `¿Deseas eliminar el equipo "${nombre}"?`);
-    if (!confirmar) return;
+    const { confirmado, password } = await confirmarEliminacion("Confirmar eliminación", `¿Deseas eliminar el equipo "${nombre}"?`);
+    if (!confirmado) return;
 
     try {
-        const respuesta = await fetch(`${API_EQUIPOS_URL}/${id}`, { method: "DELETE" });
-        if (!respuesta.ok) throw new Error("Error al eliminar");
+        await enviarDelete(`${API_EQUIPOS_URL}/${id}`, password);
         await alerta("success", "Eliminado", "Equipo eliminado correctamente."); // Re-render current equipment view
         inicializarConsultaEquipos(document.getElementById("busqueda-equipo")?.value || "");
     } catch (error) {
-        await alerta("error", "Error", "No se pudo eliminar el equipo.");
+        await alerta("error", "Error", error.message || "No se pudo eliminar el equipo.");
     }
 };
 
 const eliminarTodosEquipos = async () => {
-    const confirmar = await confirmarAlerta("¡ADVERTENCIA!", "¿Estás seguro de que deseas eliminar TODOS los equipos? Esta acción no se puede deshacer.");
-    if (!confirmar) return;
+    const { confirmado, password } = await confirmarEliminacion("¡ADVERTENCIA!", "¿Estás seguro de que deseas eliminar TODOS los equipos? Esta acción no se puede deshacer.");
+    if (!confirmado) return;
 
     try {
-        const respuesta = await fetch(`${API_EQUIPOS_URL}/all`, { method: "DELETE" });
-        if (!respuesta.ok) throw new Error("Error al eliminar todos");
+        await enviarDelete(`${API_EQUIPOS_URL}/all`, password);
         await alerta("success", "Eliminados", "Todos los equipos han sido eliminados."); // Re-render current equipment view
         inicializarConsultaEquipos(""); // Clear search and re-render
     } catch (error) {
-        await alerta("error", "Error", "No se pudieron eliminar los equipos.");
+        await alerta("error", "Error", error.message || "No se pudieron eliminar los equipos.");
     }
 };
 
@@ -788,6 +889,7 @@ const iniciarExportaciones = () => {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+    verificarEstadoPassword();
     registrarElemento();
     registrarEquipo();
     inicializarConsulta();
@@ -795,6 +897,8 @@ document.addEventListener("DOMContentLoaded", () => {
     inicializarExcelImport();
     iniciarExportaciones();
     inicializarEdicion();
+    enlazarCalculoProximoMantenimiento("fecha_ultimo_mantenimiento", "frecuencia_meses", "fecha_proximo_mantenimiento");
+    enlazarCalculoProximoMantenimiento("edit-equipo-manto-ant", "edit-equipo-frecuencia", "edit-equipo-manto-prox");
 
     const btnEliminarTodo = document.getElementById("eliminar-todos-equipos");
     if (btnEliminarTodo) {

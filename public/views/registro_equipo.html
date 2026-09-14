@@ -110,8 +110,19 @@
                 <input type="date" id="fecha_ultimo_mantenimiento">
             </div>
             <div class="space-y-2">
-                <label for="fecha_proximo_mantenimiento">Próximo Mantenimiento</label>
-                <input type="date" id="fecha_proximo_mantenimiento">
+                <label for="frecuencia_meses">Frecuencia de Mantenimiento</label>
+                <select id="frecuencia_meses" class="bg-white">
+                    <option value="">Sin definir</option>
+                    <option value="1">Cada 1 mes</option>
+                    <option value="2">Cada 2 meses</option>
+                    <option value="3">Cada 3 meses</option>
+                    <option value="6">Cada 6 meses</option>
+                    <option value="12">Cada 12 meses</option>
+                </select>
+            </div>
+            <div class="space-y-2 md:col-span-2">
+                <label for="fecha_proximo_mantenimiento">Próximo Mantenimiento (calculado automáticamente)</label>
+                <input type="date" id="fecha_proximo_mantenimiento" readonly class="bg-slate-100 cursor-not-allowed">
             </div>
 
             <div class="md:col-span-2 pt-4">

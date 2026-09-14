@@ -5,6 +5,7 @@ const mysql = require('mysql2/promise');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const multer = require('multer');
 const XLSX = require('xlsx');
 const ExcelJS = require('exceljs');
@@ -206,6 +207,7 @@ app.get('/api/export/equipos', async (req, res) => {
                 ubicacion,
                 anydesk,
                 DATE_FORMAT(fecha_ultimo_mantenimiento, '%Y-%m-%d') AS fecha_ultimo_manto,
+                frecuencia_meses,
                 DATE_FORMAT(fecha_proximo_mantenimiento, '%Y-%m-%d') AS fecha_proximo_manto
             FROM equipos
         `;
@@ -292,6 +294,33 @@ const normalizarFecha = (valor) => {
     return null;
 };
 
+// Suma "meses" a una fecha 'YYYY-MM-DD', ajustando al último día del mes
+// destino si el día original no existe ahí (ej. 31 ene + 1 mes -> 28/29 feb).
+const sumarMeses = (fechaISO, meses) => {
+    if (!fechaISO || !/^\d{4}-\d{2}-\d{2}$/.test(fechaISO)) return null;
+    const [anio, mes, dia] = fechaISO.split('-').map(Number);
+
+    const fecha = new Date(Date.UTC(anio, mes - 1, 1));
+    fecha.setUTCMonth(fecha.getUTCMonth() + meses);
+
+    const ultimoDiaMesDestino = new Date(
+        Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth() + 1, 0)
+    ).getUTCDate();
+    fecha.setUTCDate(Math.min(dia, ultimoDiaMesDestino));
+
+    return fecha.toISOString().slice(0, 10);
+};
+
+// Si hay fecha de último mantenimiento y una frecuencia (en meses) válida,
+// la próxima fecha se calcula sola; si no, se respeta lo que llegó manualmente.
+const calcularProximoMantenimiento = (fechaUltimoNormalizada, frecuenciaMeses, fechaProximaProvista) => {
+    const meses = Number(frecuenciaMeses);
+    if (fechaUltimoNormalizada && Number.isFinite(meses) && meses > 0) {
+        return sumarMeses(fechaUltimoNormalizada, meses);
+    }
+    return normalizarFecha(fechaProximaProvista);
+};
+
 /* ======================================================
    CREAR COLUMNAS SI NO EXISTEN
 ====================================================== */
@@ -302,7 +331,8 @@ const ensureEquipoColumns = async () => {
         ['anydesk', 'VARCHAR(255) NULL'],
         ['cedula', 'VARCHAR(50) NULL'],
         ['fecha_ultimo_mantenimiento', 'DATE NULL'],
-        ['fecha_proximo_mantenimiento', 'DATE NULL']
+        ['fecha_proximo_mantenimiento', 'DATE NULL'],
+        ['frecuencia_meses', 'INT NULL']
     ];
 
     for (const [columna, definicion] of columnas) {
@@ -329,6 +359,93 @@ const ensureEquipoColumns = async () => {
                 `
             );
         }
+    }
+};
+
+/* ======================================================
+   CONTRASEÑA DE SEGURIDAD PARA CONFIRMAR ELIMINACIONES
+====================================================== */
+
+const ensureConfiguracionTable = async () => {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS configuracion (
+            id INT NOT NULL PRIMARY KEY,
+            password_hash VARCHAR(255) NULL
+        )
+    `);
+    await pool.query(
+        'INSERT IGNORE INTO configuracion (id, password_hash) VALUES (1, NULL)'
+    );
+};
+
+const hashPassword = (password) => {
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+    return `${salt}:${hash}`;
+};
+
+const verificarPassword = (password, almacenado) => {
+    const [salt, hash] = String(almacenado).split(':');
+    if (!salt || !hash) return false;
+    const hashIntento = crypto.scryptSync(password, salt, 64).toString('hex');
+    const bufferAlmacenado = Buffer.from(hash, 'hex');
+    const bufferIntento = Buffer.from(hashIntento, 'hex');
+    if (bufferAlmacenado.length !== bufferIntento.length) return false;
+    return crypto.timingSafeEqual(bufferAlmacenado, bufferIntento);
+};
+
+app.get('/api/config/tiene-password', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT password_hash FROM configuracion WHERE id = 1');
+        res.json({ tienePassword: Boolean(rows[0] && rows[0].password_hash) });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/config/password', async (req, res) => {
+    try {
+        const { password } = req.body || {};
+
+        if (!password || String(password).length < 4) {
+            return res.status(400).json({ error: 'La contraseña debe tener al menos 4 caracteres' });
+        }
+
+        const [rows] = await pool.query('SELECT password_hash FROM configuracion WHERE id = 1');
+        if (rows[0] && rows[0].password_hash) {
+            return res.status(409).json({ error: 'Ya existe una contraseña configurada' });
+        }
+
+        await pool.query(
+            'UPDATE configuracion SET password_hash = ? WHERE id = 1',
+            [hashPassword(String(password))]
+        );
+
+        res.status(201).json({ message: 'Contraseña creada correctamente' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+const requierePasswordParaEliminar = async (req, res, next) => {
+    try {
+        const [rows] = await pool.query('SELECT password_hash FROM configuracion WHERE id = 1');
+        const passwordAlmacenado = rows[0] && rows[0].password_hash;
+
+        // Si aún no se ha creado una contraseña, se permite eliminar sin pedirla (comportamiento actual).
+        if (!passwordAlmacenado) return next();
+
+        const { password } = req.body || {};
+        if (!password || !verificarPassword(String(password), passwordAlmacenado)) {
+            return res.status(401).json({ error: 'Contraseña incorrecta' });
+        }
+
+        next();
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
     }
 };
 
@@ -368,7 +485,7 @@ app.post('/api/elementos', async (req, res) => {
     }
 });
 
-app.delete('/api/elementos/:id', async (req, res) => {
+app.delete('/api/elementos/:id', requierePasswordParaEliminar, async (req, res) => {
     try {
         const { id } = req.params;
         await pool.query('DELETE FROM elementos WHERE id = ?', [id]);
@@ -417,6 +534,7 @@ app.get('/api/equipos', async (req, res) => {
                 ubicacion,
                 anydesk,
                 DATE_FORMAT(fecha_ultimo_mantenimiento, '%Y-%m-%d') AS fechaUltimoMantenimiento,
+                frecuencia_meses AS frecuenciaMeses,
                 DATE_FORMAT(fecha_proximo_mantenimiento, '%Y-%m-%d') AS fechaProximoMantenimiento
             FROM equipos
         `;
@@ -443,20 +561,23 @@ app.get('/api/equipos', async (req, res) => {
 
 app.post('/api/equipos', async (req, res) => {
     try {
-        const { 
+        const {
             marca, modelo, estado, nombre_equipo, fecha_compra, placa,
             usuario, correo, cedula, sistema_operativo, numero_serie, ubicacion, anydesk,
-            fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento 
+            fecha_ultimo_mantenimiento, frecuencia_meses, fecha_proximo_mantenimiento
         } = req.body;
 
-        const query = `INSERT INTO equipos 
-            (marca, modelo, estado, nombre_equipo, fecha_compra, placa, usuario, correo, cedula, sistema_operativo, numero_serie, ubicacion, anydesk, fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const fechaUltimoNorm = normalizarFecha(fecha_ultimo_mantenimiento);
+        const fechaProximoFinal = calcularProximoMantenimiento(fechaUltimoNorm, frecuencia_meses, fecha_proximo_mantenimiento);
+
+        const query = `INSERT INTO equipos
+            (marca, modelo, estado, nombre_equipo, fecha_compra, placa, usuario, correo, cedula, sistema_operativo, numero_serie, ubicacion, anydesk, fecha_ultimo_mantenimiento, frecuencia_meses, fecha_proximo_mantenimiento)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
         const [result] = await pool.query(query, [
             marca, modelo, estado, nombre_equipo, normalizarFecha(fecha_compra), placa,
             usuario, correo, cedula, sistema_operativo, numero_serie, ubicacion, anydesk,
-            normalizarFecha(fecha_ultimo_mantenimiento), normalizarFecha(fecha_proximo_mantenimiento)
+            fechaUltimoNorm, frecuencia_meses ? Number(frecuencia_meses) : null, fechaProximoFinal
         ]);
 
         res.status(201).json({ id: result.insertId, message: 'Equipo registrado con éxito' });
@@ -466,7 +587,7 @@ app.post('/api/equipos', async (req, res) => {
     }
 });
 
-app.delete('/api/equipos/all', async (req, res) => {
+app.delete('/api/equipos/all', requierePasswordParaEliminar, async (req, res) => {
     try {
         await pool.query('DELETE FROM equipos');
         res.json({ message: 'Todos los equipos han sido eliminados con éxito' });
@@ -654,6 +775,15 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
                 'ultimo mantenimiento'
             ]),
 
+            frecuencia_meses: obtenerValor(fila, [
+                'meses mtto',
+                'meses mantenimiento',
+                'frecuencia',
+                'frecuencia meses',
+                'frecuencia de mantenimiento',
+                'periodicidad'
+            ]),
+
             fecha_proximo_mantenimiento: obtenerValor(fila, [
                 'proxima revision',
                 'proximo mantenimiento'
@@ -680,34 +810,34 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             });
         }
 
-        const values = equiposValidos.map(e => [
+        const values = equiposValidos.map(e => {
+            const fechaUltimoNorm = normalizarFecha(e.fecha_ultimo_mantenimiento);
+            const fechaProximoFinal = calcularProximoMantenimiento(fechaUltimoNorm, e.frecuencia_meses, e.fecha_proximo_mantenimiento);
 
-            e.marca,
-            e.modelo,
-            e.estado,
-            e.nombre_equipo,
+            return [
+                e.marca,
+                e.modelo,
+                e.estado,
+                e.nombre_equipo,
 
-            normalizarFecha(
-                e.fecha_compra
-            ),
+                normalizarFecha(
+                    e.fecha_compra
+                ),
 
-            e.placa,
-            e.usuario,
-            e.correo,
-            e.cedula,
-            e.sistema_operativo,
-            e.numero_serie,
-            e.ubicacion,
-            e.anydesk,
+                e.placa,
+                e.usuario,
+                e.correo,
+                e.cedula,
+                e.sistema_operativo,
+                e.numero_serie,
+                e.ubicacion,
+                e.anydesk,
 
-            normalizarFecha(
-                e.fecha_ultimo_mantenimiento
-            ),
-
-            normalizarFecha(
-                e.fecha_proximo_mantenimiento
-            )
-        ]);
+                fechaUltimoNorm,
+                e.frecuencia_meses ? Number(e.frecuencia_meses) : null,
+                fechaProximoFinal
+            ];
+        });
 
         const query = `
             INSERT INTO equipos (
@@ -725,6 +855,7 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
                 ubicacion,
                 anydesk,
                 fecha_ultimo_mantenimiento,
+                frecuencia_meses,
                 fecha_proximo_mantenimiento
             )
             VALUES ?
@@ -757,7 +888,7 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
    ELIMINAR EQUIPO
 ====================================================== */
 
-app.delete('/api/equipos/:id', async (req, res) => {
+app.delete('/api/equipos/:id', requierePasswordParaEliminar, async (req, res) => {
 
     try {
 
@@ -785,22 +916,25 @@ app.delete('/api/equipos/:id', async (req, res) => {
 app.put('/api/equipos/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { 
+        const {
             marca, modelo, estado, nombre_equipo, fecha_compra, placa,
             usuario, correo, cedula, sistema_operativo, numero_serie, ubicacion, anydesk,
-            fecha_ultimo_mantenimiento, fecha_proximo_mantenimiento 
+            fecha_ultimo_mantenimiento, frecuencia_meses, fecha_proximo_mantenimiento
         } = req.body;
 
-        const query = `UPDATE equipos SET 
-            marca = ?, modelo = ?, estado = ?, nombre_equipo = ?, fecha_compra = ?, placa = ?, 
-            usuario = ?, correo = ?, cedula = ?, sistema_operativo = ?, numero_serie = ?, ubicacion = ?, 
-            anydesk = ?, fecha_ultimo_mantenimiento = ?, fecha_proximo_mantenimiento = ? 
+        const fechaUltimoNorm = normalizarFecha(fecha_ultimo_mantenimiento);
+        const fechaProximoFinal = calcularProximoMantenimiento(fechaUltimoNorm, frecuencia_meses, fecha_proximo_mantenimiento);
+
+        const query = `UPDATE equipos SET
+            marca = ?, modelo = ?, estado = ?, nombre_equipo = ?, fecha_compra = ?, placa = ?,
+            usuario = ?, correo = ?, cedula = ?, sistema_operativo = ?, numero_serie = ?, ubicacion = ?,
+            anydesk = ?, fecha_ultimo_mantenimiento = ?, frecuencia_meses = ?, fecha_proximo_mantenimiento = ?
             WHERE id = ?`;
 
         await pool.query(query, [
             marca, modelo, estado, nombre_equipo, normalizarFecha(fecha_compra), placa,
             usuario, correo, cedula, sistema_operativo, numero_serie, ubicacion, anydesk,
-            normalizarFecha(fecha_ultimo_mantenimiento), normalizarFecha(fecha_proximo_mantenimiento), id
+            fechaUltimoNorm, frecuencia_meses ? Number(frecuencia_meses) : null, fechaProximoFinal, id
         ]);
 
         res.json({ message: 'Equipo actualizado con éxito' });
@@ -819,6 +953,7 @@ app.listen(PORT, async () => {
     try {
 
         await ensureEquipoColumns();
+        await ensureConfiguracionTable();
 
     } catch (error) {
 

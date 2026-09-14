@@ -69,10 +69,73 @@
 
         <div class="mt-8 pt-6 border-t border-gray-100 w-full text-center">
             <p class="text-xs text-text-muted font-medium uppercase tracking-tighter">Sistema de Control Interno v2.0</p>
+            <button type="button" id="btn-crear-password" class="mt-4 text-xs font-semibold text-primary hover:underline" hidden>
+                🔒 Crear contraseña para confirmar eliminaciones
+            </button>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        const verificarEstadoPasswordSeguridad = async () => {
+            const btnCrearPassword = document.getElementById('btn-crear-password');
+            if (!btnCrearPassword) return;
+
+            try {
+                const respuesta = await fetch('/api/config/tiene-password');
+                const datos = await respuesta.json();
+                btnCrearPassword.hidden = Boolean(datos.tienePassword);
+            } catch (error) {
+                console.error('No se pudo verificar el estado de la contraseña:', error);
+            }
+        };
+
+        const crearPasswordSeguridad = async () => {
+            const { value: nuevaPassword } = await Swal.fire({
+                title: 'Crear contraseña de seguridad',
+                html:
+                    '<input id="swal-pass1" type="password" class="swal2-input" placeholder="Nueva contraseña (mín. 4 caracteres)">' +
+                    '<input id="swal-pass2" type="password" class="swal2-input" placeholder="Confirmar contraseña">',
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Crear',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const p1 = document.getElementById('swal-pass1').value;
+                    const p2 = document.getElementById('swal-pass2').value;
+                    if (!p1 || p1.length < 4) {
+                        Swal.showValidationMessage('La contraseña debe tener al menos 4 caracteres');
+                        return false;
+                    }
+                    if (p1 !== p2) {
+                        Swal.showValidationMessage('Las contraseñas no coinciden');
+                        return false;
+                    }
+                    return p1;
+                }
+            });
+
+            if (!nuevaPassword) return;
+
+            try {
+                const respuesta = await fetch('/api/config/password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: nuevaPassword })
+                });
+                const resultado = await respuesta.json();
+                if (!respuesta.ok) throw new Error(resultado.error || 'No se pudo crear la contraseña');
+
+                await Swal.fire('Contraseña creada', 'A partir de ahora se pedirá para confirmar eliminaciones.', 'success');
+                document.getElementById('btn-crear-password').hidden = true;
+            } catch (error) {
+                await Swal.fire('Error', error.message, 'error');
+            }
+        };
+
+        document.getElementById('btn-crear-password')?.addEventListener('click', crearPasswordSeguridad);
+        verificarEstadoPasswordSeguridad();
+
         const btnBodega = document.getElementById('btn-bodega');
         const btnEquipos = document.getElementById('btn-equipos');
         const opcionesBodega = document.getElementById('opciones-bodega');

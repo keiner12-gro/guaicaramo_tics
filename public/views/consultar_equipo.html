@@ -142,8 +142,19 @@
                         <input type="date" id="edit-equipo-manto-ant">
                     </div>
                     <div>
-                        <label>Próx. Manto.</label>
-                        <input type="date" id="edit-equipo-manto-prox">
+                        <label>Frecuencia de Mantenimiento</label>
+                        <select id="edit-equipo-frecuencia" class="bg-white">
+                            <option value="">Sin definir</option>
+                            <option value="1">Cada 1 mes</option>
+                            <option value="2">Cada 2 meses</option>
+                            <option value="3">Cada 3 meses</option>
+                            <option value="6">Cada 6 meses</option>
+                            <option value="12">Cada 12 meses</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label>Próx. Manto. (calculado automáticamente)</label>
+                        <input type="date" id="edit-equipo-manto-prox" readonly class="bg-slate-100 cursor-not-allowed">
                     </div>
                     <div class="md:col-span-2 flex justify-end gap-4 mt-4">
                         <button type="button" onclick="cerrarModalEquipo()" class="px-6 py-3 border-2 border-gray-200 rounded-xl font-bold hover:bg-gray-50 transition-all">Cancelar</button>
