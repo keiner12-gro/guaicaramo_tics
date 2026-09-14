@@ -663,20 +663,23 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
                 .replace(/[^a-z0-9]/g, '');
 
         const obtenerValor = (fila, nombres) => {
-
-            const buscados = nombres.map(
-                n => normalizarTexto(n)
+            // Mapa columna-normalizada -> columna-real, para no depender del
+            // orden en que aparecen las columnas en el Excel.
+            const columnasPorNombre = new Map(
+                Object.keys(fila).map(k => [normalizarTexto(k), k])
             );
 
-            const clave = Object.keys(fila).find(
-                k => buscados.includes(
-                    normalizarTexto(k)
-                )
-            );
+            // Se respeta el orden de prioridad de "nombres": si la columna
+            // preferida existe pero está vacía en esta fila, se intenta con
+            // la siguiente candidata en vez de quedarse con un valor vacío.
+            for (const nombre of nombres) {
+                const clave = columnasPorNombre.get(normalizarTexto(nombre));
+                if (clave === undefined) continue;
+                const valor = String(fila[clave] || '').trim();
+                if (valor) return valor;
+            }
 
-            return clave
-                ? String(fila[clave] || '').trim()
-                : '';
+            return '';
         };
 
         const equipos = todosLosRegistros.map(fila => ({
@@ -689,7 +692,9 @@ app.post('/api/equipos/upload', upload.single('file'), async (req, res) => {
             modelo: obtenerValor(fila, [
                 'modelo cpu',
                 'modelo',
-                'tipo'
+                'tipo',
+                'tipo de pc',
+                'tipo de equipo'
             ]),
 
             estado: obtenerValor(fila, [
