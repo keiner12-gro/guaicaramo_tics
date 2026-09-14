@@ -27,6 +27,15 @@ const obtenerEquipos = async (busqueda = "") => {
 
 const texto = (valor) => String(valor ?? "").trim();
 
+// Escapa texto antes de insertarlo con innerHTML, para evitar XSS almacenado
+// si un dato guardado en la BD contiene HTML/JS (ej. marca = "<img onerror=...>").
+const escapeHtml = (valor) => String(valor ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 const fechaExcel = (valor) => {
     const limpio = texto(valor);
     if (!limpio || limpio.toLowerCase() === 'n/a') return "";
@@ -186,6 +195,9 @@ const columnasEquipos = [
 let allEquipos = [];
 let currentEquipoIndex = 0;
 
+// Últimos elementos renderizados, para buscar por id en vez de serializar el objeto en el HTML
+let ultimosElementos = [];
+
 const renderizarElementos = (elementos) => {
     if (!elementos || !Array.isArray(elementos)) elementos = []; 
 
@@ -193,6 +205,7 @@ const renderizarElementos = (elementos) => {
     if (!contenedor) return;
 
     contenedor.textContent = "";
+    ultimosElementos = elementos;
 
     if (elementos.length === 0) {
         contenedor.innerHTML = `<div class="col-span-full py-20 text-center text-gray-500 font-bold bg-white/50 rounded-2xl">No hay elementos registrados.</div>`;
@@ -202,49 +215,54 @@ const renderizarElementos = (elementos) => {
     elementos.forEach((elemento) => {
         const ficha = document.createElement("div");
         ficha.className = "ficha-card animate__animated animate__fadeInUp";
-        
+
         ficha.innerHTML = `
             <div class="ficha-header">
                 <div>
-                    <h3 class="ficha-title">${elemento.marca || "Sin Marca"}</h3>
-                    <p class="ficha-subtitle">${elemento.modelo || "Sin Modelo"}</p>
+                    <h3 class="ficha-title">${escapeHtml(elemento.marca) || "Sin Marca"}</h3>
+                    <p class="ficha-subtitle">${escapeHtml(elemento.modelo) || "Sin Modelo"}</p>
                 </div>
-                <span class="px-3 py-1 bg-primary/10 text-primary rounded-lg font-bold text-xs">CANT: ${elemento.cantidad || 0}</span>
+                <span class="px-3 py-1 bg-primary/10 text-primary rounded-lg font-bold text-xs">CANT: ${escapeHtml(elemento.cantidad) || 0}</span>
             </div>
             <div class="ficha-grid">
                 <div class="ficha-item">
                     <span class="ficha-label">Serial</span>
-                    <span class="ficha-valor">${elemento.serial || "-"}</span>
+                    <span class="ficha-valor">${escapeHtml(elemento.serial) || "-"}</span>
                 </div>
                 <div class="ficha-item">
                     <span class="ficha-label">Placa</span>
-                    <span class="ficha-valor">${elemento.placa || "-"}</span>
+                    <span class="ficha-valor">${escapeHtml(elemento.placa) || "-"}</span>
                 </div>
                 <div class="ficha-item">
                     <span class="ficha-label">Ingreso</span>
-                    <span class="ficha-valor">${elemento.fechaIngreso || "-"}</span>
+                    <span class="ficha-valor">${escapeHtml(elemento.fechaIngreso) || "-"}</span>
                 </div>
                 <div class="ficha-item">
                     <span class="ficha-label">Baja</span>
-                    <span class="ficha-valor">${elemento.fechaBaja || "-"}</span>
+                    <span class="ficha-valor">${escapeHtml(elemento.fechaBaja) || "-"}</span>
                 </div>
                 <div class="ficha-item col-span-2">
                     <span class="ficha-label">Descripción</span>
-                    <span class="ficha-valor italic text-gray-600">${elemento.descripcion || "-"}</span>
+                    <span class="ficha-valor italic text-gray-600">${escapeHtml(elemento.descripcion) || "-"}</span>
                 </div>
             </div>
             <div class="ficha-acciones">
-                <button onclick='abrirModal(${JSON.stringify(elemento).replace(/'/g, "&apos;")})' class="btn-ficha-edit">
+                <button onclick="editarElementoPorId(${elemento.id})" class="btn-ficha-edit">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     Editar
                 </button>
-                <button onclick="eliminarElemento(${elemento.id}, '${elemento.modelo || elemento.descripcion}')" class="btn-ficha-delete">
+                <button onclick="eliminarElemento(${elemento.id})" class="btn-ficha-delete">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
             </div>
         `;
         contenedor.appendChild(ficha);
     });
+};
+
+const editarElementoPorId = (id) => {
+    const elemento = ultimosElementos.find((e) => e.id === id);
+    if (elemento) abrirModal(elemento);
 };
 
 const mostrarEquipoActual = () => {
@@ -283,19 +301,19 @@ const mostrarEquipoActual = () => {
                     <div class="flex justify-between items-start mb-4">
                         <div>
                             <span class="etiqueta-pro">Marca / Modelo</span>
-                            <h2 class="text-2xl font-black text-bg-dark">${equipo.marca || "N/A"}</h2>
-                            <p class="text-primary font-bold text-sm">${equipo.modelo || "Sin Modelo"}</p>
+                            <h2 class="text-2xl font-black text-bg-dark">${escapeHtml(equipo.marca) || "N/A"}</h2>
+                            <p class="text-primary font-bold text-sm">${escapeHtml(equipo.modelo) || "Sin Modelo"}</p>
                         </div>
-                        <span class="badge-estado ${badgeClass}">${equipo.estado || "N/A"}</span>
+                        <span class="badge-estado ${badgeClass}">${escapeHtml(equipo.estado) || "N/A"}</span>
                     </div>
                     <div class="flex justify-between items-end">
                         <div class="campo-info">
                             <span class="etiqueta-pro">Nombre del Equipo</span>
-                            <span class="valor-pro text-lg">${equipo.nombre_equipo || "-"}</span>
+                            <span class="valor-pro text-lg">${escapeHtml(equipo.nombre_equipo) || "-"}</span>
                         </div>
                         <div class="campo-info text-right">
                             <span class="etiqueta-pro">Fecha Compra</span>
-                            <span class="valor-pro text-sm">${equipo.fechaCompra || "N/A"}</span>
+                            <span class="valor-pro text-sm">${escapeHtml(equipo.fechaCompra) || "N/A"}</span>
                         </div>
                     </div>
                 </div>
@@ -305,19 +323,19 @@ const mostrarEquipoActual = () => {
                     <div class="grid-campos">
                         <div class="campo-info">
                             <span class="etiqueta-pro">Placa TICS</span>
-                            <span class="valor-pro valor-destacado text-red-600">${equipo.placa || "-"}</span>
+                            <span class="valor-pro valor-destacado text-red-600">${escapeHtml(equipo.placa) || "-"}</span>
                         </div>
                         <div class="campo-info">
                             <span class="etiqueta-pro">Número de Serial</span>
-                            <span class="valor-pro valor-destacado">${equipo.numero_serie || "-"}</span>
+                            <span class="valor-pro valor-destacado">${escapeHtml(equipo.numero_serie) || "-"}</span>
                         </div>
                         <div class="campo-info">
                             <span class="etiqueta-pro">Sistema Operativo</span>
-                            <span class="valor-pro">${equipo.sistema_operativo || "-"}</span>
+                            <span class="valor-pro">${escapeHtml(equipo.sistema_operativo) || "-"}</span>
                         </div>
                         <div class="campo-info">
                             <span class="etiqueta-pro">Ubicación / Sede</span>
-                            <span class="valor-pro">${equipo.ubicacion || "-"}</span>
+                            <span class="valor-pro">${escapeHtml(equipo.ubicacion) || "-"}</span>
                         </div>
                     </div>
                 </div>
@@ -326,16 +344,16 @@ const mostrarEquipoActual = () => {
                 <div class="seccion-cuerpo seccion-gris">
                     <div class="campo-info mb-4">
                         <span class="etiqueta-pro">Responsable Directo</span>
-                        <span class="valor-pro text-lg">👤 ${equipo.usuario || "Sin Asignar"}</span>
+                        <span class="valor-pro text-lg">👤 ${escapeHtml(equipo.usuario) || "Sin Asignar"}</span>
                     </div>
                     <div class="grid-campos">
                         <div class="campo-info">
                             <span class="etiqueta-pro">Correo Corporativo</span>
-                            <span class="valor-pro text-sm text-blue-600 italic">${equipo.correo || "-"}</span>
+                            <span class="valor-pro text-sm text-blue-600 italic">${escapeHtml(equipo.correo) || "-"}</span>
                         </div>
                         <div class="campo-info">
                             <span class="etiqueta-pro">Identificación (CC)</span>
-                            <span class="valor-pro text-sm">${equipo.cedula || "N/A"}</span>
+                            <span class="valor-pro text-sm">${escapeHtml(equipo.cedula) || "N/A"}</span>
                         </div>
                     </div>
                 </div>
@@ -345,21 +363,21 @@ const mostrarEquipoActual = () => {
                     <div class="grid-campos">
                         <div class="campo-info">
                             <span class="etiqueta-pro">Último Mantenimiento</span>
-                            <span class="valor-pro">${equipo.fechaUltimoMantenimiento || "-"}</span>
+                            <span class="valor-pro">${escapeHtml(equipo.fechaUltimoMantenimiento) || "-"}</span>
                         </div>
                         <div class="campo-info">
                             <span class="etiqueta-pro">Próximo Mantenimiento</span>
-                            <span class="valor-pro text-red-600 font-bold">${equipo.fechaProximoMantenimiento || "-"}</span>
+                            <span class="valor-pro text-red-600 font-bold">${escapeHtml(equipo.fechaProximoMantenimiento) || "-"}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- ACCIONES -->
                 <div class="p-6 bg-gray-50 flex justify-between gap-4">
-                    <button onclick="eliminarEquipo(${equipo.id}, '${equipo.marca} ${equipo.modelo}')" class="btn-ficha-delete w-12 h-12 flex items-center justify-center">
+                    <button onclick="eliminarEquipo(${equipo.id})" class="btn-ficha-delete w-12 h-12 flex items-center justify-center">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
-                <button onclick='abrirModalEquipo(${JSON.stringify(equipo).replace(/'/g, "&apos;")})' class="btn-ficha-edit">
+                <button onclick="editarEquipoPorId(${equipo.id})" class="btn-ficha-edit">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     Editar Equipo
                 </button>
@@ -378,6 +396,11 @@ const mostrarEquipoActual = () => {
 const navegarEquipo = (direccion) => {
     currentEquipoIndex += direccion;
     mostrarEquipoActual();
+};
+
+const editarEquipoPorId = (id) => {
+    const equipo = allEquipos.find((e) => e.id === id);
+    if (equipo) abrirModalEquipo(equipo);
 };
 
 // --- GESTIÓN DE MODALES Y ACTUALIZACIÓN ---
@@ -604,9 +627,9 @@ const mostrarLogImportacion = (equipos) => {
     equipos.forEach(e => {
         const row = `
             <tr class="border-b hover:bg-gray-50">
-                <td class="px-4 py-2 font-medium text-gray-900">${e.marca || "-"}</td>
-                <td class="px-4 py-2">${e.modelo || "-"}</td>
-                <td class="px-4 py-2">${e.numero_serie || "-"}</td>
+                <td class="px-4 py-2 font-medium text-gray-900">${escapeHtml(e.marca) || "-"}</td>
+                <td class="px-4 py-2">${escapeHtml(e.modelo) || "-"}</td>
+                <td class="px-4 py-2">${escapeHtml(e.numero_serie) || "-"}</td>
                 <td class="px-4 py-2"><span class="px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-800">Guardado</span></td>
             </tr>
         `;
@@ -701,7 +724,9 @@ const inicializarConsultaEquipos = async (busqueda = "") => {
     }
 };
 
-const eliminarElemento = async (id, nombre) => {
+const eliminarElemento = async (id) => {
+    const elemento = ultimosElementos.find((e) => e.id === id);
+    const nombre = elemento ? (elemento.modelo || elemento.descripcion) : "este elemento";
     const confirmar = await confirmarAlerta("Confirmar eliminación", `¿Deseas eliminar "${nombre}"?`);
     if (!confirmar) return;
 
@@ -715,7 +740,9 @@ const eliminarElemento = async (id, nombre) => {
     }
 };
 
-const eliminarEquipo = async (id, nombre) => {
+const eliminarEquipo = async (id) => {
+    const equipo = allEquipos.find((e) => e.id === id);
+    const nombre = equipo ? `${equipo.marca || ""} ${equipo.modelo || ""}`.trim() : "este equipo";
     const confirmar = await confirmarAlerta("Confirmar eliminación", `¿Deseas eliminar el equipo "${nombre}"?`);
     if (!confirmar) return;
 

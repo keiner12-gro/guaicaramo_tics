@@ -4,6 +4,7 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const multer = require('multer');
 const XLSX = require('xlsx');
 const ExcelJS = require('exceljs');
@@ -46,7 +47,10 @@ app.use(cors());
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(__dirname));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 /* ======================================================
    VARIABLES DE ENTORNO (CONFIGURACIÓN)
@@ -61,6 +65,19 @@ console.log(`👤 DB USER:   ${process.env.DB_USER}`);
 console.log(`🗄️  DB NAME:   ${process.env.DB_NAME}`);
 console.log('======================================================\n');
 
+const esBaseLocal = ['localhost', '127.0.0.1'].includes(process.env.DB_HOST);
+const caPath = process.env.DB_CA_PATH && process.env.DB_CA_PATH.trim();
+
+// TiDB Cloud (y la mayoría de MySQL en la nube) exigen TLS.
+// Usamos las CAs públicas que ya trae Node salvo que se indique un archivo CA propio.
+const ssl = esBaseLocal
+    ? undefined
+    : {
+        minVersion: 'TLSv1.2',
+        rejectUnauthorized: true,
+        ...(caPath ? { ca: fs.readFileSync(caPath) } : {})
+    };
+
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -69,9 +86,7 @@ const pool = mysql.createPool({
 
     port: Number(process.env.DB_PORT),
 
-    ssl: {
-        rejectUnauthorized: false
-    },
+    ssl,
 
     connectTimeout: 60000,
 
